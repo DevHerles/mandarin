@@ -500,8 +500,8 @@ def main():
             font-family: 'Noto Serif SC', KaiTi, STKaiti, "KaiTi SC", "KaiTi TC", serif;
             font-size: 10em;
             text-align: center;
-            color: #2c3e50;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #000000;
+            background: #FFFFFF;
             padding: 50px;
             border-radius: 20px;
             margin: 30px 0;
