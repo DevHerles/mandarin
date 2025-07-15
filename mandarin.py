@@ -57,8 +57,8 @@ phrases = [
         "spanish": "Profesor/a, ¿puedo entrar?"
     },
     {
-        "chinese": "我, 你, 您, 他, 她, 它, 我们, 你们, 他们, 她们, 它们",
-        "pinyin": "wǒ, nǐ, nín, tā, tā, tā, wǒmen, nǐmen, tāmen, tāmen, tāmen",
+        "chinese": "我, 你, 您, 他, 她, 它, 们",
+        "pinyin": "wǒ, nǐ, nín, tā, tā, tā, men",
         "spanish": "yo, tú/usted (informal), usted (formal), él, ella, eso (objeto/animal), nosotros/as, vosotros/ustedes (plural), ellos (mixto), ellas (femenino), ellos (objetos)"
     }
 ]
