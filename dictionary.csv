@@ -1,0 +1,91 @@
+chinese,pinyin,spanish,category
+你好,nǐ hǎo,Hola,Saludos
+再见,zài jiàn,Adiós,Saludos
+谢谢,xiè xie,Gracias,Saludos
+不客气,bú kè qi,De nada,Saludos
+早上好,zǎo shang hǎo,Buenos días,Saludos
+晚上好,wǎn shang hǎo,Buenas noches,Saludos
+一,yī,Uno,Números
+二,èr,Dos,Números
+三,sān,Tres,Números
+四,sì,Cuatro,Números
+五,wǔ,Cinco,Números
+六,liù,Seis,Números
+七,qī,Siete,Números
+八,bā,Ocho,Números
+九,jiǔ,Nueve,Números
+十,shí,Diez,Números
+红,hóng,Rojo,Colores
+蓝,lán,Azul,Colores
+黄,huáng,Amarillo,Colores
+绿,lǜ,Verde,Colores
+黑,hēi,Negro,Colores
+白,bái,Blanco,Colores
+老师,lǎo shī,Profesor,Aula
+学生,xué sheng,Estudiante,Aula
+书,shū,Libro,Aula
+问题,wèn tí,Pregunta,Aula
+答案,dá àn,Respuesta,Aula
+请说慢一点,qǐng shuō màn yì diǎn,Hable más despacio por favor,Aula
+同事,tóng shì,Compañero de trabajo,Oficina
+会议,huì yì,Reunión,Oficina
+电脑,diàn nǎo,Computadora,Oficina
+电话,diàn huà,Teléfono,Oficina
+邮件,yóu jiàn,Correo electrónico,Oficina
+工作,gōng zuò,Trabajo,Oficina
+爸爸,bà ba,Padre,Familia
+妈妈,mā ma,Madre,Familia
+哥哥,gē ge,Hermano mayor,Familia
+姐姐,jiě jie,Hermana mayor,Familia
+弟弟,dì di,Hermano menor,Familia
+妹妹,mèi mei,Hermana menor,Familia
+水,shuǐ,Agua,Comida
+米饭,mǐ fàn,Arroz cocido,Comida
+面包,miàn bāo,Pan,Comida
+苹果,píng guǒ,Manzana,Comida
+茶,chá,Té,Comida
+咖啡,kā fēi,Café,Comida
+星期一,xīng qī yī,Lunes,Días
+星期二,xīng qī èr,Martes,Días
+星期三,xīng qī sān,Miércoles,Días
+星期四,xīng qī sì,Jueves,Días
+星期五,xīng qī wǔ,Viernes,Días
+星期六,xīng qī liù,Sábado,Días
+星期日,xīng qī rì,Domingo,Días
+热,rè,Calor,Tiempo
+冷,lěng,Frío,Tiempo
+雨,yǔ,Lluvia,Tiempo
+太阳,tài yang,Sol,Tiempo
+风,fēng,Viento,Tiempo
+狗,gǒu,Perro,Animales
+猫,māo,Gato,Animales
+鸟,niǎo,Pájaro,Animales
+鱼,yú,Pez,Animales
+头,tóu,Cabeza,Partes del cuerpo
+眼睛,yǎn jing,Ojos,Partes del cuerpo
+手,shǒu,Mano,Partes del cuerpo
+脚,jiǎo,Pie,Partes del cuerpo
+衬衫,chèn shān,Camisa,Ropa
+裤子,kù zi,Pantalones,Ropa
+鞋子,xié zi,Zapatos,Ropa
+帽子,mào zi,Sombrero,Ropa
+公共汽车,gōng gòng qì chē,Autobús,Transporte
+地铁,dì tiě,Metro,Transporte
+出租车,chū zū chē,Taxi,Transporte
+自行车,zì xíng chē,Bicicleta,Transporte
+飞机,fēi jī,Avion,Transporte
+医院,yī yuàn,Hospital,Lugares
+学校,xué xiào,Escuela,Lugares
+公园,gōng yuán,Parque,Lugares
+商店,shāng diàn,Tienda,Lugares
+银行,yín háng,Banco,Lugares
+是,shì,Ser (es/soy),Verbos
+有,yǒu,Tener,Verbos
+做,zuò,Hacer,Verbos
+去,qù,Ir,Verbos
+说,shuō,Hablar,Verbos
+大,dà,Grande,Adjetivos
+小,xiǎo,Pequeño,Adjetivos
+好,hǎo,Bueno,Adjetivos
+坏,huài,Malo,Adjetivos
+高兴,gāo xìng,Contento,Adjetivos

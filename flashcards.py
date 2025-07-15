@@ -1,86 +1,305 @@
 import streamlit as st
+import sqlite3
+import pandas as pd
 import random
 import time
-from typing import Dict, List
+import hashlib
+import io
+from typing import Dict, List, Optional, Tuple
 
-# Base de datos expandida de vocabulario por categorías
-VOCABULARY_DB = {
-    "Saludos y Cortesía": {
-        '你好': {'pinyin': 'nǐ hǎo', 'spanish': 'Hola'},
-        '再见': {'pinyin': 'zài jiàn', 'spanish': 'Adiós'},
-        '谢谢': {'pinyin': 'xiè xie', 'spanish': 'Gracias'},
-        '请': {'pinyin': 'qǐng', 'spanish': 'Por favor'},
-        '对不起': {'pinyin': 'duì bu qǐ', 'spanish': 'Lo siento'},
-        '没关系': {'pinyin': 'méi guān xi', 'spanish': 'No importa'},
-        '欢迎': {'pinyin': 'huān yíng', 'spanish': 'Bienvenido'},
-    },
-    "Números": {
-        '一': {'pinyin': 'yī', 'spanish': 'Uno'},
-        '二': {'pinyin': 'èr', 'spanish': 'Dos'},
-        '三': {'pinyin': 'sān', 'spanish': 'Tres'},
-        '四': {'pinyin': 'sì', 'spanish': 'Cuatro'},
-        '五': {'pinyin': 'wǔ', 'spanish': 'Cinco'},
-        '六': {'pinyin': 'liù', 'spanish': 'Seis'},
-        '七': {'pinyin': 'qī', 'spanish': 'Siete'},
-        '八': {'pinyin': 'bā', 'spanish': 'Ocho'},
-        '九': {'pinyin': 'jiǔ', 'spanish': 'Nueve'},
-        '十': {'pinyin': 'shí', 'spanish': 'Diez'},
-    },
-    "Familia": {
-        '爸爸': {'pinyin': 'bà ba', 'spanish': 'Papá'},
-        '妈妈': {'pinyin': 'mā ma', 'spanish': 'Mamá'},
-        '儿子': {'pinyin': 'ér zi', 'spanish': 'Hijo'},
-        '女儿': {'pinyin': 'nǚ ér', 'spanish': 'Hija'},
-        '哥哥': {'pinyin': 'gē ge', 'spanish': 'Hermano mayor'},
-        '姐姐': {'pinyin': 'jiě jie', 'spanish': 'Hermana mayor'},
-        '弟弟': {'pinyin': 'dì di', 'spanish': 'Hermano menor'},
-        '妹妹': {'pinyin': 'mèi mei', 'spanish': 'Hermana menor'},
-    },
-    "Aula": {
-        '老师': {'pinyin': 'lǎo shī', 'spanish': 'Profesor/a'},
-        '学生': {'pinyin': 'xué sheng', 'spanish': 'Estudiante'},
-        '问题': {'pinyin': 'wèn tí', 'spanish': 'Pregunta'},
-        '答案': {'pinyin': 'dá àn', 'spanish': 'Respuesta'},
-        '汉语': {'pinyin': 'hàn yǔ', 'spanish': 'Chino (idioma)'},
-        '明白': {'pinyin': 'míng bai', 'spanish': 'Entender'},
-        '说': {'pinyin': 'shuō', 'spanish': 'Hablar/Decir'},
-        '听': {'pinyin': 'tīng', 'spanish': 'Escuchar'},
-    },
-    "Colores": {
-        '红色': {'pinyin': 'hóng sè', 'spanish': 'Rojo'},
-        '蓝色': {'pinyin': 'lán sè', 'spanish': 'Azul'},
-        '绿色': {'pinyin': 'lǜ sè', 'spanish': 'Verde'},
-        '黄色': {'pinyin': 'huáng sè', 'spanish': 'Amarillo'},
-        '黑色': {'pinyin': 'hēi sè', 'spanish': 'Negro'},
-        '白色': {'pinyin': 'bái sè', 'spanish': 'Blanco'},
-        '紫色': {'pinyin': 'zǐ sè', 'spanish': 'Morado'},
-    },
-    "Tiempo": {
-        '今天': {'pinyin': 'jīn tiān', 'spanish': 'Hoy'},
-        '明天': {'pinyin': 'míng tiān', 'spanish': 'Mañana'},
-        '昨天': {'pinyin': 'zuó tiān', 'spanish': 'Ayer'},
-        '现在': {'pinyin': 'xiàn zài', 'spanish': 'Ahora'},
-        '早上': {'pinyin': 'zǎo shang', 'spanish': 'Mañana (AM)'},
-        '晚上': {'pinyin': 'wǎn shang', 'spanish': 'Noche'},
-        '年': {'pinyin': 'nián', 'spanish': 'Año'},
-        '月': {'pinyin': 'yuè', 'spanish': 'Mes'},
-        '天': {'pinyin': 'tiān', 'spanish': 'Día'},
-    }
-}
+# Configuración de la página
+st.set_page_config(
+    page_title="学习中文 - Flashcards",
+    page_icon="🎴",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-def get_random_word(category: str) -> tuple:
-    """Obtener una palabra aleatoria de la categoría seleccionada"""
-    if category == "Todas las categorías":
-        # Combinar todas las categorías
-        all_words = {}
-        for cat_words in VOCABULARY_DB.values():
-            all_words.update(cat_words)
-        chinese_word = random.choice(list(all_words.keys()))
-        return chinese_word, all_words[chinese_word]
-    else:
-        words = VOCABULARY_DB[category]
-        chinese_word = random.choice(list(words.keys()))
-        return chinese_word, words[chinese_word]
+# Código de acceso (hash SHA-256 de ".Ad3l4nT3$$$$$")
+ACCESS_CODE_HASH = "32b1514b28d7aa1aba3cdecbcfe3e370e3afcedd4b9fee1199f2801cc38cfe22"
+
+class VocabularyDB:
+    def __init__(self, db_path: str = "vocabulary.db"):
+        self.db_path = db_path
+        self.init_database()
+    
+    def init_database(self):
+        """Inicializar base de datos con datos por defecto"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Crear tabla de vocabulario
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS vocabulary (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                chinese TEXT NOT NULL,
+                pinyin TEXT NOT NULL,
+                spanish TEXT NOT NULL,
+                category TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Crear tabla de configuración
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+        ''')
+        
+        # Verificar si ya hay datos
+        cursor.execute("SELECT COUNT(*) FROM vocabulary")
+        count = cursor.fetchone()[0]
+        
+        if count == 0:
+            # Insertar datos por defecto
+            default_data = [
+                # Saludos y Cortesía
+                ('你好', 'nǐ hǎo', 'Hola', 'Saludos y Cortesía'),
+                ('再见', 'zài jiàn', 'Adiós', 'Saludos y Cortesía'),
+                ('谢谢', 'xiè xie', 'Gracias', 'Saludos y Cortesía'),
+                ('请', 'qǐng', 'Por favor', 'Saludos y Cortesía'),
+                ('对不起', 'duì bu qǐ', 'Lo siento', 'Saludos y Cortesía'),
+                ('没关系', 'méi guān xi', 'No importa', 'Saludos y Cortesía'),
+                ('欢迎', 'huān yíng', 'Bienvenido', 'Saludos y Cortesía'),
+                
+                # Números
+                ('一', 'yī', 'Uno', 'Números'),
+                ('二', 'èr', 'Dos', 'Números'),
+                ('三', 'sān', 'Tres', 'Números'),
+                ('四', 'sì', 'Cuatro', 'Números'),
+                ('五', 'wǔ', 'Cinco', 'Números'),
+                ('六', 'liù', 'Seis', 'Números'),
+                ('七', 'qī', 'Siete', 'Números'),
+                ('八', 'bā', 'Ocho', 'Números'),
+                ('九', 'jiǔ', 'Nueve', 'Números'),
+                ('十', 'shí', 'Diez', 'Números'),
+                
+                # Familia
+                ('爸爸', 'bà ba', 'Papá', 'Familia'),
+                ('妈妈', 'mā ma', 'Mamá', 'Familia'),
+                ('儿子', 'ér zi', 'Hijo', 'Familia'),
+                ('女儿', 'nǚ ér', 'Hija', 'Familia'),
+                ('哥哥', 'gē ge', 'Hermano mayor', 'Familia'),
+                ('姐姐', 'jiě jie', 'Hermana mayor', 'Familia'),
+                ('弟弟', 'dì di', 'Hermano menor', 'Familia'),
+                ('妹妹', 'mèi mei', 'Hermana menor', 'Familia'),
+                
+                # Aula
+                ('老师', 'lǎo shī', 'Profesor/a', 'Aula'),
+                ('学生', 'xué sheng', 'Estudiante', 'Aula'),
+                ('问题', 'wèn tí', 'Pregunta', 'Aula'),
+                ('答案', 'dá àn', 'Respuesta', 'Aula'),
+                ('汉语', 'hàn yǔ', 'Chino (idioma)', 'Aula'),
+                ('明白', 'míng bai', 'Entender', 'Aula'),
+                ('说', 'shuō', 'Hablar/Decir', 'Aula'),
+                ('听', 'tīng', 'Escuchar', 'Aula'),
+                
+                # Colores
+                ('红色', 'hóng sè', 'Rojo', 'Colores'),
+                ('蓝色', 'lán sè', 'Azul', 'Colores'),
+                ('绿色', 'lǜ sè', 'Verde', 'Colores'),
+                ('黄色', 'huáng sè', 'Amarillo', 'Colores'),
+                ('黑色', 'hēi sè', 'Negro', 'Colores'),
+                ('白色', 'bái sè', 'Blanco', 'Colores'),
+                ('紫色', 'zǐ sè', 'Morado', 'Colores'),
+                
+                # Tiempo
+                ('今天', 'jīn tiān', 'Hoy', 'Tiempo'),
+                ('明天', 'míng tiān', 'Mañana', 'Tiempo'),
+                ('昨天', 'zuó tiān', 'Ayer', 'Tiempo'),
+                ('现在', 'xiàn zài', 'Ahora', 'Tiempo'),
+                ('早上', 'zǎo shang', 'Mañana (AM)', 'Tiempo'),
+                ('晚上', 'wǎn shang', 'Noche', 'Tiempo'),
+                ('年', 'nián', 'Año', 'Tiempo'),
+                ('月', 'yuè', 'Mes', 'Tiempo'),
+                ('天', 'tiān', 'Día', 'Tiempo'),
+            ]
+            
+            cursor.executemany('''
+                INSERT INTO vocabulary (chinese, pinyin, spanish, category)
+                VALUES (?, ?, ?, ?)
+            ''', default_data)
+        
+        conn.commit()
+        conn.close()
+    
+    def get_categories(self) -> List[str]:
+        """Obtener todas las categorías disponibles"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT category FROM vocabulary ORDER BY category")
+        categories = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return categories
+    
+    def get_words_by_category(self, category: str) -> List[Dict]:
+        """Obtener palabras por categoría"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        if category == "Todas las categorías":
+            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary")
+        else:
+            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ?", (category,))
+        
+        words = []
+        for row in cursor.fetchall():
+            words.append({
+                'chinese': row[0],
+                'pinyin': row[1],
+                'spanish': row[2],
+                'category': row[3]
+            })
+        
+        conn.close()
+        return words
+    
+    def get_random_word(self, category: str) -> Optional[Dict]:
+        """Obtener una palabra aleatoria de la categoría"""
+        words = self.get_words_by_category(category)
+        if words:
+            return random.choice(words)
+        return None
+    
+    def add_word(self, chinese: str, pinyin: str, spanish: str, category: str) -> bool:
+        """Agregar nueva palabra"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO vocabulary (chinese, pinyin, spanish, category)
+                VALUES (?, ?, ?, ?)
+            ''', (chinese, pinyin, spanish, category))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            st.error(f"Error al agregar palabra: {e}")
+            return False
+    
+    def update_word(self, word_id: int, chinese: str, pinyin: str, spanish: str, category: str) -> bool:
+        """Actualizar palabra existente"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE vocabulary 
+                SET chinese = ?, pinyin = ?, spanish = ?, category = ?
+                WHERE id = ?
+            ''', (chinese, pinyin, spanish, category, word_id))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            st.error(f"Error al actualizar palabra: {e}")
+            return False
+    
+    def delete_word(self, word_id: int) -> bool:
+        """Eliminar palabra"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM vocabulary WHERE id = ?", (word_id,))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            st.error(f"Error al eliminar palabra: {e}")
+            return False
+    
+    def get_all_words(self) -> pd.DataFrame:
+        """Obtener todas las palabras como DataFrame"""
+        conn = sqlite3.connect(self.db_path)
+        df = pd.read_sql_query("SELECT * FROM vocabulary ORDER BY category, chinese", conn)
+        conn.close()
+        return df
+    
+    def import_from_csv(self, csv_data: str) -> Tuple[int, int]:
+        """Importar palabras desde CSV"""
+        try:
+            df = pd.read_csv(io.StringIO(csv_data))
+            
+            # Verificar columnas requeridas
+            required_columns = ['chinese', 'pinyin', 'spanish', 'category']
+            if not all(col in df.columns for col in required_columns):
+                st.error(f"El CSV debe contener las columnas: {', '.join(required_columns)}")
+                return 0, 0
+            
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            added = 0
+            errors = 0
+            
+            for _, row in df.iterrows():
+                try:
+                    cursor.execute('''
+                        INSERT INTO vocabulary (chinese, pinyin, spanish, category)
+                        VALUES (?, ?, ?, ?)
+                    ''', (row['chinese'], row['pinyin'], row['spanish'], row['category']))
+                    added += 1
+                except:
+                    errors += 1
+            
+            conn.commit()
+            conn.close()
+            return added, errors
+        except Exception as e:
+            st.error(f"Error al importar CSV: {e}")
+            return 0, 0
+    
+    def set_config(self, key: str, value: str):
+        """Guardar configuración"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT OR REPLACE INTO config (key, value)
+            VALUES (?, ?)
+        ''', (key, value))
+        conn.commit()
+        conn.close()
+    
+    def get_config(self, key: str, default: str = None) -> str:
+        """Obtener configuración"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT value FROM config WHERE key = ?", (key,))
+        result = cursor.fetchone()
+        conn.close()
+        return result[0] if result else default
+
+def hash_password(password: str) -> str:
+    """Generar hash SHA-256 de la contraseña"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def check_access():
+    """Verificar acceso con código"""
+    if 'authenticated' not in st.session_state:
+        st.session_state.authenticated = False
+    
+    if not st.session_state.authenticated:
+        st.markdown("""
+        <div style="text-align: center; padding: 50px;">
+            <h2>🔐 Acceso Restringido</h2>
+            <p>Por favor, ingresa el código de acceso para continuar</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            access_code = st.text_input("Código de acceso:", type="password", key="access_input")
+            
+            if st.button("🚪 Ingresar", use_container_width=True):
+                if hash_password(access_code) == ACCESS_CODE_HASH:
+                    st.session_state.authenticated = True
+                    st.success("✅ Acceso autorizado")
+                    st.rerun()
+                else:
+                    st.error("❌ Código incorrecto")
+        
+        st.stop()
 
 def create_audio_component(text: str, auto_play: bool = False):
     """Crear componente de audio que funciona automáticamente"""
@@ -101,35 +320,171 @@ def create_audio_component(text: str, auto_play: bool = False):
     </div>
     <script>
         function playAudio() {{
-            // Cancelar cualquier audio previo
             if (window.speechSynthesis) {{
                 window.speechSynthesis.cancel();
-                
-                // Crear nuevo utterance
                 const utterance = new SpeechSynthesisUtterance('{text}');
                 utterance.lang = 'zh-CN';
                 utterance.rate = 0.7;
                 utterance.pitch = 1.0;
                 utterance.volume = 1.0;
-                
-                // Reproducir
                 window.speechSynthesis.speak(utterance);
             }}
         }}
-        
         {auto_play_script}
     </script>
     """
 
-# Configuración de la página
-st.set_page_config(
-    page_title="学习中文 - Flashcards",
-    page_icon="🎴",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+def admin_panel(db: VocabularyDB):
+    """Panel de administración de vocabulario"""
+    st.markdown("## 🛠️ Panel de Administración")
+    
+    # Pestañas para diferentes funciones
+    tab1, tab2, tab3, tab4 = st.tabs(["📝 Agregar Palabra", "📊 Ver/Editar", "📤 Importar CSV", "📋 Exportar"])
+    
+    with tab1:
+        st.markdown("### Agregar Nueva Palabra")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            chinese = st.text_input("Palabra en Chino:", key="add_chinese")
+            pinyin = st.text_input("Pinyin:", key="add_pinyin")
+        
+        with col2:
+            spanish = st.text_input("Traducción al Español:", key="add_spanish")
+            
+            # Obtener categorías existentes
+            categories = db.get_categories()
+            category_options = categories + ["➕ Nueva categoría"]
+            
+            category_choice = st.selectbox("Categoría:", category_options, key="add_category_choice")
+            
+            if category_choice == "➕ Nueva categoría":
+                category = st.text_input("Nueva categoría:", key="add_new_category")
+            else:
+                category = category_choice
+        
+        if st.button("✅ Agregar Palabra", key="add_word_btn"):
+            if chinese and pinyin and spanish and category:
+                if db.add_word(chinese, pinyin, spanish, category):
+                    st.success("✅ Palabra agregada exitosamente")
+                    st.rerun()
+            else:
+                st.error("❌ Por favor completa todos los campos")
+    
+    with tab2:
+        st.markdown("### Ver y Editar Vocabulario")
+        
+        # Filtro por categoría
+        categories = ["Todas"] + db.get_categories()
+        filter_category = st.selectbox("Filtrar por categoría:", categories, key="filter_category")
+        
+        # Obtener datos
+        df = db.get_all_words()
+        
+        if filter_category != "Todas":
+            df = df[df['category'] == filter_category]
+        
+        # Mostrar tabla editable
+        if not df.empty:
+            st.dataframe(df, use_container_width=True)
+            
+            # Seleccionar palabra para editar
+            word_ids = df['id'].tolist()
+            selected_id = st.selectbox("Seleccionar palabra para editar:", 
+                                     [f"{row['chinese']} - {row['spanish']}" for _, row in df.iterrows()],
+                                     key="edit_select")
+            
+            if selected_id:
+                selected_row = df.iloc[df.index[df.apply(lambda x: f"{x['chinese']} - {x['spanish']}" == selected_id, axis=1)].tolist()[0]]
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    edit_chinese = st.text_input("Chino:", value=selected_row['chinese'], key="edit_chinese")
+                    edit_pinyin = st.text_input("Pinyin:", value=selected_row['pinyin'], key="edit_pinyin")
+                
+                with col2:
+                    edit_spanish = st.text_input("Español:", value=selected_row['spanish'], key="edit_spanish")
+                    edit_category = st.text_input("Categoría:", value=selected_row['category'], key="edit_category")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("💾 Actualizar", key="update_btn"):
+                        if db.update_word(selected_row['id'], edit_chinese, edit_pinyin, edit_spanish, edit_category):
+                            st.success("✅ Palabra actualizada")
+                            st.rerun()
+                
+                with col2:
+                    if st.button("🗑️ Eliminar", key="delete_btn"):
+                        if db.delete_word(selected_row['id']):
+                            st.success("✅ Palabra eliminada")
+                            st.rerun()
+    
+    with tab3:
+        st.markdown("### Importar desde CSV")
+        
+        st.info("El CSV debe contener las columnas: chinese, pinyin, spanish, category")
+        
+        # Ejemplo de formato
+        st.markdown("**Ejemplo de formato CSV:**")
+        example_csv = """chinese,pinyin,spanish,category
+你好,nǐ hǎo,Hola,Saludos
+再见,zài jiàn,Adiós,Saludos"""
+        st.code(example_csv)
+        
+        uploaded_file = st.file_uploader("Cargar archivo CSV", type=['csv'])
+        
+        if uploaded_file is not None:
+            # Mostrar preview
+            csv_data = uploaded_file.getvalue().decode('utf-8')
+            st.markdown("**Vista previa:**")
+            preview_df = pd.read_csv(io.StringIO(csv_data))
+            st.dataframe(preview_df.head())
+            
+            if st.button("📥 Importar Datos"):
+                added, errors = db.import_from_csv(csv_data)
+                if added > 0:
+                    st.success(f"✅ {added} palabras importadas exitosamente")
+                if errors > 0:
+                    st.warning(f"⚠️ {errors} errores durante la importación")
+                if added > 0:
+                    st.rerun()
+    
+    with tab4:
+        st.markdown("### Exportar Vocabulario")
+        
+        # Obtener datos
+        df = db.get_all_words()
+        
+        # Opción de filtrar por categoría
+        categories = ["Todas"] + db.get_categories()
+        export_category = st.selectbox("Exportar categoría:", categories, key="export_category")
+        
+        if export_category != "Todas":
+            df = df[df['category'] == export_category]
+        
+        # Mostrar estadísticas
+        st.metric("Total de palabras a exportar", len(df))
+        
+        # Preparar CSV
+        csv = df.to_csv(index=False)
+        
+        st.download_button(
+            label="📥 Descargar CSV",
+            data=csv,
+            file_name=f"vocabulario_{export_category.lower().replace(' ', '_')}.csv",
+            mime="text/csv"
+        )
 
 def main():
+    # Verificar acceso
+    check_access()
+    
+    # Inicializar base de datos
+    db = VocabularyDB()
+    
     # CSS personalizado
     st.markdown("""
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
@@ -175,7 +530,6 @@ def main():
         .phase-1 { background: #e8f5e8; color: #27ae60; }
         .phase-2 { background: #fff3cd; color: #f39c12; }
         .phase-3 { background: #f8d7da; color: #c0392b; }
-        
         .countdown-timer {
             text-align: center;
             margin: 20px 0;
@@ -186,7 +540,6 @@ def main():
             font-size: 1.2em;
             font-weight: bold;
         }
-        
         .audio-playing {
             text-align: center;
             margin: 20px 0;
@@ -197,13 +550,11 @@ def main():
             font-size: 1.3em;
             animation: pulse 2s infinite;
         }
-        
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
-        
         @media (max-width: 768px) {
             .chinese-word {
                 font-size: 6em;
@@ -217,17 +568,43 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Sidebar para configuraciones
+    # Sidebar para navegación
     with st.sidebar:
+        st.markdown("### 🎯 Navegación")
+        
+        # Modo de aplicación
+        app_mode = st.selectbox(
+            "Seleccionar modo:",
+            ["🎴 Flashcards", "🛠️ Administración"],
+            key="app_mode"
+        )
+        
+        if app_mode == "🛠️ Administración":
+            admin_panel(db)
+            return
+        
+        st.markdown("---")
         st.markdown("### ⚙️ Configuraciones")
         
-        # Selección de categoría
-        categories = ["Todas las categorías"] + list(VOCABULARY_DB.keys())
+        # Selección de categoría con persistencia
+        categories = ["Todas las categorías"] + db.get_categories()
+        saved_category = db.get_config('selected_category', 'Todas las categorías')
+        
+        try:
+            default_index = categories.index(saved_category)
+        except ValueError:
+            default_index = 0
+        
         selected_category = st.selectbox(
             "📚 Categoría:",
             categories,
-            index=0 if 'current_category' not in st.session_state else categories.index(st.session_state.get('current_category', 'Todas las categorías'))
+            index=default_index,
+            key="category_select"
         )
+        
+        # Guardar categoría seleccionada
+        if selected_category != saved_category:
+            db.set_config('selected_category', selected_category)
         
         # Configuración de tiempo
         wait_time = st.slider("⏱️ Tiempo de espera (segundos)", 1, 10, 3)
@@ -241,8 +618,14 @@ def main():
         st.metric("Palabras estudiadas", st.session_state.get('words_studied', 0))
         st.metric("Categoría actual", selected_category)
         st.metric("Tiempo por fase", f"{wait_time}s")
+        
+        # Botón de cerrar sesión
+        st.markdown("---")
+        if st.button("🚪 Cerrar Sesión"):
+            st.session_state.authenticated = False
+            st.rerun()
     
-    # Inicializar estado
+    # Inicializar estado de sesión
     if 'current_word' not in st.session_state:
         st.session_state.current_word = None
     if 'current_data' not in st.session_state:
@@ -281,11 +664,14 @@ def main():
     
     with col1:
         if st.button("🎯 Nueva Palabra", key="new_word", use_container_width=True):
-            st.session_state.current_word, st.session_state.current_data = get_random_word(st.session_state.current_category)
-            st.session_state.phase = 1
-            st.session_state.phase_start_time = time.time()
-            st.session_state.is_playing = True
-            st.rerun()
+            word_data = db.get_random_word(st.session_state.current_category)
+            if word_data:
+                st.session_state.current_word = word_data['chinese']
+                st.session_state.current_data = word_data
+                st.session_state.phase = 1
+                st.session_state.phase_start_time = time.time()
+                st.session_state.is_playing = True
+                st.rerun()
     
     with col2:
         play_text = "⏸️ Pausar" if st.session_state.is_playing else "▶️ Iniciar"
@@ -305,9 +691,12 @@ def main():
                 else:
                     # Nueva palabra
                     st.session_state.words_studied += 1
-                    st.session_state.current_word, st.session_state.current_data = get_random_word(st.session_state.current_category)
-                    st.session_state.phase = 1
-                    st.session_state.phase_start_time = time.time()
+                    word_data = db.get_random_word(st.session_state.current_category)
+                    if word_data:
+                        st.session_state.current_word = word_data['chinese']
+                        st.session_state.current_data = word_data
+                        st.session_state.phase = 1
+                        st.session_state.phase_start_time = time.time()
                 st.rerun()
     
     with col4:
@@ -362,6 +751,9 @@ def main():
                 <div style="font-size: 1em;">
                     🇪🇸 {st.session_state.current_data['spanish']}
                 </div>
+                <div style="font-size: 0.8em; margin-top: 10px; opacity: 0.8;">
+                    📂 {st.session_state.current_data['category']}
+                </div>
             </div>
             """, unsafe_allow_html=True)
         
@@ -399,9 +791,6 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Placeholder para auto-refresh
-                placeholder = st.empty()
-                
                 # Refresh cada 0.1 segundos
                 if current_time - st.session_state.last_update >= 0.1:
                     st.session_state.last_update = current_time
@@ -416,9 +805,12 @@ def main():
                 else:
                     # Completar palabra y pasar a la siguiente
                     st.session_state.words_studied += 1
-                    st.session_state.current_word, st.session_state.current_data = get_random_word(st.session_state.current_category)
-                    st.session_state.phase = 1
-                    st.session_state.phase_start_time = time.time()
+                    word_data = db.get_random_word(st.session_state.current_category)
+                    if word_data:
+                        st.session_state.current_word = word_data['chinese']
+                        st.session_state.current_data = word_data
+                        st.session_state.phase = 1
+                        st.session_state.phase_start_time = time.time()
                 
                 st.rerun()
 
