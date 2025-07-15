@@ -9,7 +9,8 @@ PINYIN_DICT = {
     '汉': 'hàn', '语': 'yǔ', '怎': 'zěn', '么': 'me', '我': 'wǒ', 
     '有': 'yǒu', '个': 'ge', '问': 'wèn', '题': 'tí', '请': 'qǐng', 
     '这': 'zhè', '不': 'bù', '明': 'míng', '白': 'bái', '是': 'shì', 
-    '什': 'shén', '意': 'yì', '思': 'sī', '进': 'jìn', '来': 'lái'
+    '什': 'shén', '意': 'yì', '思': 'sī', '进': 'jìn', '来': 'lái',
+    '我': 'wǒ', '你': 'nǐ', '他': 'tā', '她': 'tā', '它': 'tā', "们": "men",
 }
 
 def get_pinyin(char):
@@ -54,6 +55,11 @@ phrases = [
         "chinese": "老师，我可以进来吗？",
         "pinyin": "lǎoshī, wǒ kěyǐ jìnlái ma?",
         "spanish": "Profesor/a, ¿puedo entrar?"
+    },
+    {
+        "chinese": "我, 你, 您, 他, 她, 它, 我们, 你们, 他们, 她们, 它们",
+        "pinyin": "wǒ, nǐ, nín, tā, tā, tā, wǒmen, nǐmen, tāmen, tāmen, tāmen",
+        "spanish": "yo, tú/usted (informal), usted (formal), él, ella, eso (objeto/animal), nosotros/as, vosotros/ustedes (plural), ellos (mixto), ellas (femenino), ellos (objetos)"
     }
 ]
 
@@ -82,7 +88,7 @@ def main():
             font-size: 16em;
             text-align: center;
             background:rgb(0, 0, 0);
-            padding: 30px;
+            padding: 10px;
             border-radius: 10px;
             border: 3px solid #007bff;
             margin: 20px 0;
@@ -90,6 +96,19 @@ def main():
         .char-button {
             font-family: KaiTi, STKaiti, "KaiTi SC", "KaiTi TC", serif;
             font-size: 1.2em;
+        }
+        .progress-container {
+            background: #f0f2f6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #e0e0e0;
+        }
+        .progress-label {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -154,43 +173,39 @@ def main():
             if st.button("▶️ Auto" if not st.session_state.auto_play else "⏸️ Pausar"):
                 st.session_state.auto_play = not st.session_state.auto_play
         
-        # Mostrar caracteres como botones
-        st.markdown("### Caracteres:")
-        char_cols = st.columns(len(chinese_chars))
+        # Progress bar interactivo tipo reproductor de audio
+        # st.markdown('<div class="progress-container">', unsafe_allow_html=True)
+        # st.markdown('<div class="progress-label">🎯 Progreso - Desliza para navegar:</div>', unsafe_allow_html=True)
         
-        for i, char in enumerate(chinese_chars):
-            with char_cols[i]:
-                char_pinyin = get_pinyin(char)
-                
-                if i == st.session_state.current_char_index:
-                    button_style = "🔴"
-                elif i < st.session_state.current_char_index:
-                    button_style = "🟢"
-                else:
-                    button_style = "⚪"
-                
-                if st.button(f"{button_style} {char}\n{char_pinyin}", key=f"char_{i}"):
-                    st.session_state.current_char_index = i
-                    st.session_state.auto_play = False
+        # Slider interactivo
+        selected_position = st.slider(
+            "",
+            min_value=0,
+            max_value=len(chinese_chars) - 1,
+            value=st.session_state.current_char_index,
+            step=1,
+            key="progress_slider"
+        )
         
-        # Carácter actual
+        # Actualizar posición si el slider cambió
+        if selected_position != st.session_state.current_char_index:
+            st.session_state.current_char_index = selected_position
+            st.session_state.auto_play = False
+        
+        # Mostrar información del progreso
         current_char = chinese_chars[st.session_state.current_char_index]
         current_pinyin = get_pinyin(current_char)
-        
-        st.markdown(f'<div class="current-char">{current_char}</div>', unsafe_allow_html=True)
         
         # Mostrar pinyin del carácter actual
         st.markdown(f"""
         <div style="text-align: center; font-size: 1.5em; color: #007bff; 
-                    margin: 10px 0; font-weight: bold;">
+                    margin: 5px 0; font-weight: bold;">
             {current_pinyin}
         </div>
         """, unsafe_allow_html=True)
-                
-        # Progreso
-        progress = (st.session_state.current_char_index + 1) / len(chinese_chars)
-        st.progress(progress)
-        st.write(f"Carácter {st.session_state.current_char_index + 1} de {len(chinese_chars)} - {current_char} ({current_pinyin})")
+        
+        # Carácter actual
+        st.markdown(f'<div class="current-char">{current_char}</div>', unsafe_allow_html=True)
         
         # Auto-play
         if st.session_state.auto_play:
