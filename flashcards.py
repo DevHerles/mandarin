@@ -611,7 +611,8 @@ def main():
         
         # Avance automático
         auto_advance = st.checkbox("🔄 Avance automático", True)
-        
+        learning_mode = st.checkbox("📚 Modo Aprendizaje", False)
+
         # Estadísticas
         st.markdown("---")
         st.markdown("### 📊 Estadísticas")
@@ -642,11 +643,14 @@ def main():
         st.session_state.current_category = selected_category
     if 'last_update' not in st.session_state:
         st.session_state.last_update = time.time()
+    if 'learning_mode' not in st.session_state:
+        st.session_state.learning_mode = learning_mode
     
     # Actualizar configuraciones
     st.session_state.wait_time = wait_time
     st.session_state.auto_advance = auto_advance
-    
+    st.session_state.learning_mode = learning_mode
+
     # Cambio de categoría
     if selected_category != st.session_state.current_category:
         st.session_state.current_category = selected_category
@@ -668,7 +672,10 @@ def main():
             if word_data:
                 st.session_state.current_word = word_data['chinese']
                 st.session_state.current_data = word_data
-                st.session_state.phase = 1
+                if st.session_state.learning_mode:
+                    st.session_state.phase = 1  # Learning mode doesn't use phases
+                else:
+                    st.session_state.phase = 1  # Flashcards mode starts at phase 1
                 st.session_state.phase_start_time = time.time()
                 st.session_state.is_playing = True
                 st.rerun()
@@ -717,32 +724,22 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     else:
-        # Mostrar indicador de fase
-        phase_info = {
-            1: {"text": "🎯 Fase 1: Identifica la palabra", "class": "phase-1"},
-            2: {"text": "📝 Fase 2: Pinyin y traducción", "class": "phase-2"},
-            3: {"text": "🔊 Fase 3: Escucha la pronunciación", "class": "phase-3"}
-        }
-        
-        if st.session_state.phase > 0:
-            current_phase = phase_info[st.session_state.phase]
+        if st.session_state.learning_mode:
+            # LEARNING MODE: Show everything at once
             st.markdown(f"""
-            <div class="phase-indicator {current_phase['class']}">
-                {current_phase['text']}
+            <div class="phase-indicator phase-1">
+                📚 Modo Aprendizaje: Estudia la palabra completa
             </div>
             """, unsafe_allow_html=True)
-        
-        # Mostrar contenido según la fase
-        if st.session_state.phase >= 1:
-            # Fase 1: Mostrar palabra china
+            
+            # Show Chinese word
             st.markdown(f"""
             <div class="chinese-word">
                 {st.session_state.current_word}
             </div>
             """, unsafe_allow_html=True)
-        
-        if st.session_state.phase >= 2:
-            # Fase 2: Mostrar pinyin y traducción
+            
+            # Show pinyin and translation
             st.markdown(f"""
             <div class="pinyin-translation">
                 <div style="font-size: 1.2em; margin-bottom: 10px;">
@@ -756,63 +753,140 @@ def main():
                 </div>
             </div>
             """, unsafe_allow_html=True)
-        
-        if st.session_state.phase >= 3:
-            # Fase 3: Mostrar audio automático
-            st.markdown(f"""
-            <div class="audio-playing">
-                🔊 ¡Escucha la pronunciación!
-            </div>
-            """, unsafe_allow_html=True)
             
-            # Reproducir audio automáticamente
+            # Auto-play audio
             audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
             st.components.v1.html(audio_html, height=100)
-        
-        # Botón de audio manual disponible desde la fase 2
-        if st.session_state.phase >= 2 and st.session_state.phase < 3:
-            audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
-            st.components.v1.html(audio_html, height=100)
-        
-        # Lógica de avance automático mejorada
-        if (st.session_state.is_playing and 
-            st.session_state.auto_advance and 
-            st.session_state.phase_start_time is not None):
             
-            current_time = time.time()
-            elapsed_time = current_time - st.session_state.phase_start_time
-            remaining_time = st.session_state.wait_time - elapsed_time
-            
-            if remaining_time > 0:
-                # Mostrar countdown
-                st.markdown(f"""
-                <div class="countdown-timer">
-                    ⏳ {'Siguiente fase' if st.session_state.phase < 3 else 'Nueva palabra'} en: {remaining_time:.1f}s
-                </div>
-                """, unsafe_allow_html=True)
+            # Learning mode auto-advance logic
+            if (st.session_state.is_playing and 
+                st.session_state.auto_advance and 
+                st.session_state.phase_start_time is not None):
                 
-                # Refresh cada 0.1 segundos
-                if current_time - st.session_state.last_update >= 0.1:
-                    st.session_state.last_update = current_time
-                    time.sleep(0.1)
-                    st.rerun()
+                current_time = time.time()
+                elapsed_time = current_time - st.session_state.phase_start_time
+                remaining_time = st.session_state.wait_time - elapsed_time
+                
+                if remaining_time > 0:
+                    # Show countdown
+                    st.markdown(f"""
+                    <div class="countdown-timer">
+                        ⏳ Nueva palabra en: {remaining_time:.1f}s
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-            else:
-                # Tiempo terminado - avanzar
-                if st.session_state.phase < 3:
-                    st.session_state.phase += 1
-                    st.session_state.phase_start_time = time.time()
+                    # Refresh every 0.1 seconds
+                    if current_time - st.session_state.last_update >= 0.1:
+                        st.session_state.last_update = current_time
+                        time.sleep(0.1)
+                        st.rerun()
+                        
                 else:
-                    # Completar palabra y pasar a la siguiente
+                    # Time's up - next word
                     st.session_state.words_studied += 1
                     word_data = db.get_random_word(st.session_state.current_category)
                     if word_data:
                         st.session_state.current_word = word_data['chinese']
                         st.session_state.current_data = word_data
-                        st.session_state.phase = 1
                         st.session_state.phase_start_time = time.time()
+                    st.rerun()
+        else:
+            # Mostrar indicador de fase
+            phase_info = {
+                1: {"text": "🎯 Fase 1: Identifica la palabra", "class": "phase-1"},
+                2: {"text": "📝 Fase 2: Pinyin y traducción", "class": "phase-2"},
+                3: {"text": "🔊 Fase 3: Escucha la pronunciación", "class": "phase-3"}
+            }
+            
+            if st.session_state.phase > 0:
+                current_phase = phase_info[st.session_state.phase]
+                st.markdown(f"""
+                <div class="phase-indicator {current_phase['class']}">
+                    {current_phase['text']}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Mostrar contenido según la fase
+            if st.session_state.phase >= 1:
+                # Fase 1: Mostrar palabra china
+                st.markdown(f"""
+                <div class="chinese-word">
+                    {st.session_state.current_word}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if st.session_state.phase >= 2:
+                # Fase 2: Mostrar pinyin y traducción
+                st.markdown(f"""
+                <div class="pinyin-translation">
+                    <div style="font-size: 1.2em; margin-bottom: 10px;">
+                        📝 {st.session_state.current_data['pinyin']}
+                    </div>
+                    <div style="font-size: 1em;">
+                        🇪🇸 {st.session_state.current_data['spanish']}
+                    </div>
+                    <div style="font-size: 0.8em; margin-top: 10px; opacity: 0.8;">
+                        📂 {st.session_state.current_data['category']}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if st.session_state.phase >= 3:
+                # Fase 3: Mostrar audio automático
+                st.markdown(f"""
+                <div class="audio-playing">
+                    🔊 ¡Escucha la pronunciación!
+                </div>
+                """, unsafe_allow_html=True)
                 
-                st.rerun()
+                # Reproducir audio automáticamente
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
+                st.components.v1.html(audio_html, height=100)
+            
+            # Botón de audio manual disponible desde la fase 2
+            if st.session_state.phase >= 2 and st.session_state.phase < 3:
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
+                st.components.v1.html(audio_html, height=100)
+            
+            # Lógica de avance automático mejorada
+            if (st.session_state.is_playing and 
+                st.session_state.auto_advance and 
+                st.session_state.phase_start_time is not None):
+                
+                current_time = time.time()
+                elapsed_time = current_time - st.session_state.phase_start_time
+                remaining_time = st.session_state.wait_time - elapsed_time
+                
+                if remaining_time > 0:
+                    # Mostrar countdown
+                    st.markdown(f"""
+                    <div class="countdown-timer">
+                        ⏳ {'Siguiente fase' if st.session_state.phase < 3 else 'Nueva palabra'} en: {remaining_time:.1f}s
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Refresh cada 0.1 segundos
+                    if current_time - st.session_state.last_update >= 0.1:
+                        st.session_state.last_update = current_time
+                        time.sleep(0.1)
+                        st.rerun()
+                        
+                else:
+                    # Tiempo terminado - avanzar
+                    if st.session_state.phase < 3:
+                        st.session_state.phase += 1
+                        st.session_state.phase_start_time = time.time()
+                    else:
+                        # Completar palabra y pasar a la siguiente
+                        st.session_state.words_studied += 1
+                        word_data = db.get_random_word(st.session_state.current_category)
+                        if word_data:
+                            st.session_state.current_word = word_data['chinese']
+                            st.session_state.current_data = word_data
+                            st.session_state.phase = 1
+                            st.session_state.phase_start_time = time.time()
+                    
+                    st.rerun()
 
 if __name__ == "__main__":
     main()

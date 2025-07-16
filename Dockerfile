@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code
-COPY . .
+# Copy only the required files
+COPY requirements.txt .
+COPY *.py .
+COPY *.db .
 
 # Expose the default Streamlit port
 EXPOSE 8502
