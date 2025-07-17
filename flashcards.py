@@ -488,6 +488,7 @@ def main():
     # CSS personalizado
     st.markdown("""
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
     <style>
         .main-title {
             font-family: 'Noto Serif SC', KaiTi, STKaiti, "KaiTi SC", "KaiTi TC", serif;
@@ -558,7 +559,17 @@ def main():
         @media (max-width: 768px) {
             .chinese-word {
                 font-size: 6em;
-                padding: 30px;
+                padding: 10px;
+                background: #FFFFFF;
+                .pinyin {
+                    font-size: 0.2em;
+                    font-family: 'Montserrat', sans-serif;
+                }
+
+                .translation {
+                    font-size: 0.15em;
+                }
+                
             }
             .pinyin-translation {
                 font-size: 1.0em;
@@ -735,25 +746,16 @@ def main():
             # Show Chinese word
             st.markdown(f"""
             <div class="chinese-word">
-                {st.session_state.current_word}
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Show pinyin and translation
-            st.markdown(f"""
-            <div class="pinyin-translation">
-                <div style="font-size: 1.2em; margin-bottom: 10px;">
+                <div class="pinyin">
                     📝 {st.session_state.current_data['pinyin']}
                 </div>
-                <div style="font-size: 1em;">
+                {st.session_state.current_word}
+                <div class="translation">
                     🇪🇸 {st.session_state.current_data['spanish']}
-                </div>
-                <div style="font-size: 0.8em; margin-top: 10px; opacity: 0.8;">
-                    📂 {st.session_state.current_data['category']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
+
             # Auto-play audio
             audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
             st.components.v1.html(audio_html, height=100)
