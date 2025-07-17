@@ -488,7 +488,7 @@ def main():
     # CSS personalizado
     st.markdown("""
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
     <style>
         .main-title {
             font-family: 'Noto Serif SC', KaiTi, STKaiti, "KaiTi SC", "KaiTi TC", serif;
@@ -508,6 +508,16 @@ def main():
             margin: 30px 0;
             border: 4px solid #3498db;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            .pinyin {
+                font-size: 0.3em;
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 500;
+            }
+
+            .translation {
+                font-size: 0.2em;
+                font-family: 'Montserrat', sans-serif;
+            }
         }
         .pinyin-translation {
             font-size: 2em;
@@ -562,12 +572,14 @@ def main():
                 padding: 10px;
                 background: #FFFFFF;
                 .pinyin {
-                    font-size: 0.2em;
+                    font-size: 0.3em;
                     font-family: 'Montserrat', sans-serif;
+                    font-weight: 500;
                 }
 
                 .translation {
-                    font-size: 0.15em;
+                    font-size: 0.2em;
+                    font-family: 'Montserrat', sans-serif;
                 }
                 
             }
@@ -747,11 +759,11 @@ def main():
             st.markdown(f"""
             <div class="chinese-word">
                 <div class="pinyin">
-                    📝 {st.session_state.current_data['pinyin']}
+                    {st.session_state.current_data['pinyin']}
                 </div>
                 {st.session_state.current_word}
                 <div class="translation">
-                    🇪🇸 {st.session_state.current_data['spanish']}
+                    {st.session_state.current_data['spanish']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
