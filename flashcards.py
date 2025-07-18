@@ -490,15 +490,22 @@ def main():
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+        font-family: KaiTi;
+            src: url('https://munihuayucachi.servicios.gob.pe/eeefb172-d17a-4a1e-8276-5ea006fc7770/fonts/KaiTi.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
         .main-title {
-            font-family: 'Noto Serif SC', KaiTi, STKaiti, "KaiTi SC", "KaiTi TC", serif;
+            font-family: KaiTi, 'Noto Serif SC', serif !important;
             font-size: 3em;
             text-align: center;
             color: #c0392b;
             margin-bottom: 30px;
         }
         .chinese-word {
-            font-family: 'Noto Serif SC', KaiTi, STKaiti, "KaiTi SC", "KaiTi TC", serif;
+            font-family: KaiTi, 'Noto Serif SC', serif !important;
             font-size: 10em;
             text-align: center;
             color: #000000;

@@ -17,7 +17,7 @@ COPY *.py .
 COPY *.db .
 
 # Expose the default Streamlit port
-EXPOSE 8502
+EXPOSE 8501
 
 # Command to run the application
-CMD ["streamlit", "run", "flashcards.py"]
+CMD ["streamlit", "run", "flashcards.py", "--server.port=8501"]
