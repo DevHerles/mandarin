@@ -675,6 +675,10 @@ def main():
         st.session_state.last_update = time.time()
     if 'learning_mode' not in st.session_state:
         st.session_state.learning_mode = learning_mode
+    if 'word_history' not in st.session_state:
+        st.session_state.word_history = []
+    if 'history_index' not in st.session_state:
+        st.session_state.history_index = -1
     
     # Actualizar configuraciones
     st.session_state.wait_time = wait_time
@@ -694,18 +698,22 @@ def main():
     st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Flashcards para aprender vocabulario chino</p>', unsafe_allow_html=True)
     
     # Controles principales
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         if st.button("🎯 Nueva Palabra", key="new_word", use_container_width=True):
             word_data = db.get_random_word(st.session_state.current_category)
             if word_data:
+                # Guardar en historial
+                st.session_state.word_history.append(word_data)
+                st.session_state.history_index = len(st.session_state.word_history) - 1
+                
                 st.session_state.current_word = word_data['chinese']
                 st.session_state.current_data = word_data
                 if st.session_state.learning_mode:
-                    st.session_state.phase = 1  # Learning mode doesn't use phases
+                    st.session_state.phase = 1
                 else:
-                    st.session_state.phase = 1  # Flashcards mode starts at phase 1
+                    st.session_state.phase = 1
                 st.session_state.phase_start_time = time.time()
                 st.session_state.is_playing = True
                 st.rerun()
@@ -720,23 +728,91 @@ def main():
                 st.rerun()
     
     with col3:
+        if st.button("⏮️ Anterior", key="prev_phase", use_container_width=True):
+            # Verificar si hay historial y si no estamos en la primera palabra
+            if st.session_state.word_history and st.session_state.history_index > 0:
+                # Cancelar cualquier proceso automático en curso
+                st.session_state.is_playing = False
+                st.session_state.phase_start_time = None
+                
+                # Ir a la palabra anterior en el historial
+                st.session_state.history_index -= 1
+                word_data = st.session_state.word_history[st.session_state.history_index]
+                
+                st.session_state.current_word = word_data['chinese']
+                st.session_state.current_data = word_data
+                
+                # Restaurar la fase original de la palabra
+                if st.session_state.learning_mode:
+                    # En modo aprendizaje, mostrar la palabra completa
+                    st.session_state.phase = 3
+                else:
+                    # En modo flashcard, ir a la fase 1
+                    st.session_state.phase = 1
+                
+                st.session_state.phase_start_time = time.time()
+                st.session_state.is_playing = True
+                
+                st.rerun()
+    
+    with col4:
         if st.button("⏭️ Siguiente", key="next_phase", use_container_width=True):
             if st.session_state.current_word:
-                if st.session_state.phase < 3:
-                    st.session_state.phase += 1
-                    st.session_state.phase_start_time = time.time()
-                else:
-                    # Nueva palabra
+                # Cancelar cualquier proceso automático en curso
+                st.session_state.is_playing = False
+                st.session_state.phase_start_time = None
+                
+                # Si tenemos una palabra actual, guardarla en el historial
+                if st.session_state.current_data:
+                    st.session_state.word_history.append(st.session_state.current_data)
+                    st.session_state.history_index = len(st.session_state.word_history) - 1
+                
+                if st.session_state.learning_mode:
+                    # En modo aprendizaje, ir directo a nueva palabra
                     st.session_state.words_studied += 1
                     word_data = db.get_random_word(st.session_state.current_category)
                     if word_data:
+                        # Guardar la nueva palabra en el historial
+                        st.session_state.word_history.append(word_data)
+                        st.session_state.history_index = len(st.session_state.word_history) - 1
+                        
+                        st.session_state.current_word = word_data['chinese']
+                        st.session_state.current_data = word_data
+                        st.session_state.phase_start_time = time.time()
+                        st.session_state.is_playing = True  # Reactivar para modo aprendizaje
+                else:
+                    # En modo flashcard, avanzar fase
+                    if st.session_state.phase < 3:
+                        st.session_state.phase += 1
+                        st.session_state.phase_start_time = time.time()
+                        st.session_state.is_playing = True  # Reactivar para continuar
+                    else:
+                        # Nueva palabra
+                        st.session_state.words_studied += 1
+                        word_data = db.get_random_word(st.session_state.current_category)
+                        if word_data:
+                            # Guardar la nueva palabra en el historial
+                            st.session_state.word_history.append(word_data)
+                            st.session_state.history_index = len(st.session_state.word_history) - 1
+                            
+                            st.session_state.current_word = word_data['chinese']
+                            st.session_state.current_data = word_data
+                            st.session_state.phase_start_time = time.time()
+                            st.session_state.is_playing = True  # Reactivar para continuar
+
+                # Si estamos en modo flashcard y la fase es 3, guardar la palabra actual
+                if not st.session_state.learning_mode and st.session_state.phase == 3:
+                    if st.session_state.current_data:
+                        st.session_state.word_history.append(st.session_state.current_data)
+                        st.session_state.history_index = len(st.session_state.word_history) - 1
                         st.session_state.current_word = word_data['chinese']
                         st.session_state.current_data = word_data
                         st.session_state.phase = 1
                         st.session_state.phase_start_time = time.time()
+                        st.session_state.is_playing = True  # Reactivar para continuar
                 st.rerun()
     
-    with col4:
+    with col5:
         if st.button("🔄 Reiniciar", key="reset", use_container_width=True):
             st.session_state.phase = 0
             st.session_state.is_playing = False
@@ -805,6 +881,12 @@ def main():
                 else:
                     # Time's up - next word
                     st.session_state.words_studied += 1
+                    
+                    # Guardar la palabra actual en el historial antes de obtener la siguiente
+                    if st.session_state.current_data:
+                        st.session_state.word_history.append(st.session_state.current_data)
+                        st.session_state.history_index = len(st.session_state.word_history)
+                    
                     word_data = db.get_random_word(st.session_state.current_category)
                     if word_data:
                         st.session_state.current_word = word_data['chinese']
