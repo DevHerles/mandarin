@@ -506,7 +506,7 @@ def main():
         }
         .chinese-word {
             font-family: KaiTi, 'Noto Serif SC', serif !important;
-            font-size: 10em;
+            font-size: 8em;
             text-align: center;
             color: #000000;
             background: #FFFFFF;
@@ -573,7 +573,7 @@ def main():
             50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 768px) and (orientation: portrait) {
             .chinese-word {
                 font-size: 6em;
                 padding: 10px;
@@ -593,6 +593,29 @@ def main():
             .pinyin-translation {
                 font-size: 1.0em;
                 padding: 20px;
+            }
+        }
+        @media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+            .chinese-word {
+                font-size: 5.8em; /* slightly larger */
+                padding: 12px;
+                background: #FFFFFF;
+            }
+
+            .chinese-word .pinyin {
+                font-size: 0.35em;
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 500;
+            }
+
+            .chinese-word .translation {
+                font-size: 0.25em;
+                font-family: 'Montserrat', sans-serif;
+            }
+
+            .pinyin-translation {
+                font-size: 1.2em;
+                padding: 25px;
             }
         }
     </style>
