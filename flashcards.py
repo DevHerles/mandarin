@@ -6,6 +6,10 @@ import time
 import hashlib
 import io
 from typing import Dict, List, Optional, Tuple
+import requests
+import re
+from urllib.parse import quote
+import base64
 
 # Configuración de la página
 st.set_page_config(
@@ -497,6 +501,10 @@ def main():
             font-style: normal;
             font-display: swap;
         }
+        .stroke-chinese-word {
+            font-family: KaiTi, 'Noto Serif SC', serif !important;
+            font-size: 2.8em !important;
+        }
         .main-title {
             font-family: KaiTi, 'Noto Serif SC', serif !important;
             font-size: 3em;
@@ -663,9 +671,9 @@ def main():
         wait_time = st.slider("⏱️ Tiempo de espera (segundos)", 1, 10, 3)
         
         # Avance automático
-        auto_advance = st.checkbox("🔄 Avance automático", True)
-        learning_mode = st.checkbox("📚 Modo Aprendizaje", False)
-        writing_mode = st.checkbox("✍️ Modo Escritura", False)
+        auto_advance = st.checkbox("🔄 Avance automático", False)
+        learning_mode = st.checkbox("📚 Modo Aprendizaje", True)
+        writing_mode = st.checkbox("✍️ Modo Escritura", True)
 
         # Estadísticas
         st.markdown("---")
@@ -891,17 +899,11 @@ def main():
                         
                         for i, character in enumerate(chinese_chars):
                             with cols[i]:
-                                st.markdown(f"<h3 style='text-align: center; color: #1f77b4;'>{character}</h3>", 
-                                        unsafe_allow_html=True)
+                                # st.markdown(f"<h3 style='text-align: center; color: #1f77b4;'>{character}</h3>", 
+                                #         unsafe_allow_html=True)
                                 
                                 # Aquí integraremos la funcionalidad de stroke order
                                 with st.spinner(f'Cargando trazos para {character}...'):
-                                    # Usar la función del app.py
-                                    import requests
-                                    import re
-                                    from urllib.parse import quote
-                                    import base64
-                                    
                                     def fetch_character_data(character):
                                         try:
                                             encoded_char = quote(character)
@@ -913,6 +915,14 @@ def main():
                                             response.raise_for_status()
                                             html = response.text
                                             
+                                            # Extraer pinyin
+                                            pinyin_match = re.search(r'Pinyin & Definition:.*?<[^>]*>([^<]+)', html, re.DOTALL)
+                                            pinyin = pinyin_match.group(1).strip() if pinyin_match else "N/A"
+                                            
+                                            # Extraer definición en inglés
+                                            definition_match = re.search(r'Pinyin & Definition:.*?<[^>]*>[^<]+.*?<[^>]*>([^<]+)', html, re.DOTALL)
+                                            definition = definition_match.group(1).strip() if definition_match else "N/A"
+        
                                             gif_match = re.search(r'src="([^"]*\.gif[^"]*)"', html)
                                             gif_url = None
                                             
@@ -923,7 +933,14 @@ def main():
                                                 elif not gif_url.startswith('http'):
                                                     gif_url = 'http://www.strokeorder.info/' + gif_url
                                             
-                                            return {'gif_url': gif_url, 'success': True}
+                                            # Extraer número de trazos
+                                            strokes_match = re.search(r'Strokes:.*?(\d+)', html, re.DOTALL)
+                                            strokes = strokes_match.group(1) if strokes_match else "N/A"
+                                            
+                                            # Extraer radical
+                                            radical_match = re.search(r'Radical:.*?<[^>]*>([^<]+)', html, re.DOTALL)
+                                            radical = radical_match.group(1).strip() if radical_match else "N/A"
+                                            return {'gif_url': gif_url, 'pinyin': pinyin, 'definition': definition, 'strokes': strokes, 'radical': radical, 'success': True,}
                                         except Exception as e:
                                             return {'success': False, 'error': str(e)}
                                     
@@ -939,6 +956,17 @@ def main():
                                     character_data = fetch_character_data(character)
                                     
                                     if character_data['success'] and character_data['gif_url']:
+                                        st.markdown(f"<h3 class='stroke-chinese-word' style='text-align: center; color: #1f77b4;'>{character} {character_data['pinyin']} {character_data['definition']}</h3>", unsafe_allow_html=True)
+                                        # if show_details:
+                                        #     if character_data['pinyin'] != "N/A":
+                                        #         st.markdown(f"**Pinyin:** {character_data['pinyin']}")                                        
+                                        #     if character_data['definition'] != "N/A":
+                                        #         st.markdown(f"**Definición:** {character_data['definition']}")
+                                        #     if character_data['strokes'] != "N/A":
+                                        #         st.markdown(f"**Trazos:** {character_data['strokes']}")
+                                        #     if character_data['radical'] != "N/A":
+                                        #         st.markdown(f"**Radical:** {character_data['radical']}")
+
                                         gif_base64 = download_gif(character_data['gif_url'])
                                         if gif_base64:
                                             st.markdown(
