@@ -274,6 +274,74 @@ class VocabularyDB:
         conn.close()
         return result[0] if result else default
 
+    def save_last_flashcard(self, word_data: dict, phase: int = 1):
+        """Guardar el estado del último flashcard"""
+        try:
+            # Convertir word_data a JSON string para almacenamiento
+            import json
+            flashcard_json = json.dumps(word_data)
+            
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                # Actualizar o insertar el último flashcard
+                cursor.execute("""
+                    INSERT OR REPLACE INTO config (key, value) 
+                    VALUES (?, ?)
+                """, ('last_flashcard_data', flashcard_json))
+                
+                cursor.execute("""
+                    INSERT OR REPLACE INTO config (key, value) 
+                    VALUES (?, ?)
+                """, ('last_flashcard_phase', str(phase)))
+                
+                conn.commit()
+                return True
+        except Exception as e:
+            st.error(f"Error guardando último flashcard: {e}")
+            return False
+
+    def get_last_flashcard(self):
+        """Obtener el estado del último flashcard"""
+        try:
+            import json
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Obtener datos del flashcard
+                cursor.execute("SELECT value FROM config WHERE key = ?", ('last_flashcard_data',))
+                result = cursor.fetchone()
+                
+                if result:
+                    word_data = json.loads(result[0])
+                    
+                    # Obtener fase
+                    cursor.execute("SELECT value FROM config WHERE key = ?", ('last_flashcard_phase',))
+                    phase_result = cursor.fetchone()
+                    phase = int(phase_result[0]) if phase_result else 1
+                    
+                    return {
+                        'word_data': word_data,
+                        'phase': phase
+                    }
+                
+                return None
+        except Exception as e:
+            st.error(f"Error obteniendo último flashcard: {e}")
+            return None
+
+    def clear_last_flashcard(self):
+        """Limpiar el estado del último flashcard"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM config WHERE key IN (?, ?)", 
+                            ('last_flashcard_data', 'last_flashcard_phase'))
+                conn.commit()
+                return True
+        except Exception as e:
+            st.error(f"Error limpiando último flashcard: {e}")
+            return False
+
 def hash_password(password: str) -> str:
     """Generar hash SHA-256 de la contraseña"""
     return hashlib.sha256(password.encode()).hexdigest()
@@ -737,6 +805,34 @@ def main():
     
     with col1:
         if st.button("🎯 Nueva Palabra", key="new_word", use_container_width=True):
+            if (st.session_state.current_word is None and 'session_started' not in st.session_state):
+                last_flashcard = db.get_last_flashcard()
+                if last_flashcard:
+                    # Restaurar el último flashcard
+                    word_data = last_flashcard['word_data']
+                    saved_phase = last_flashcard['phase']
+                    
+                    # Guardar en historial
+                    st.session_state.word_history.append(word_data)
+                    st.session_state.history_index = len(st.session_state.word_history) - 1
+                    
+                    st.session_state.current_word = word_data['chinese']
+                    st.session_state.current_data = word_data
+                    
+                    # Restaurar la fase guardada
+                    if st.session_state.learning_mode:
+                        st.session_state.phase = 3  # En modo aprendizaje, mostrar todo
+                    else:
+                        st.session_state.phase = saved_phase
+                    
+                    st.session_state.phase_start_time = time.time()
+                    st.session_state.is_playing = True
+                    st.session_state.session_started = True
+                    
+                    st.success(f"✅ Flashcard anterior restaurado: {word_data['chinese']}")
+                    st.rerun()
+            
+            # Lógica normal para nueva palabra
             word_data = db.get_random_word(st.session_state.current_category)
             if word_data:
                 # Guardar en historial
@@ -751,6 +847,10 @@ def main():
                     st.session_state.phase = 1
                 st.session_state.phase_start_time = time.time()
                 st.session_state.is_playing = True
+                st.session_state.session_started = True
+                
+                # Guardar el nuevo flashcard
+                db.save_last_flashcard(word_data, st.session_state.phase)
                 st.rerun()
     
     with col2:
@@ -788,6 +888,7 @@ def main():
                 st.session_state.phase_start_time = time.time()
                 st.session_state.is_playing = True
                 
+                db.save_last_flashcard(word_data, st.session_state.phase)
                 st.rerun()
     
     with col4:
@@ -845,6 +946,7 @@ def main():
                         st.session_state.phase = 1
                         st.session_state.phase_start_time = time.time()
                         st.session_state.is_playing = True  # Reactivar para continuar
+                db.save_last_flashcard(word_data, st.session_state.phase)
                 st.rerun()
     
     with col5:
