@@ -644,6 +644,15 @@ def main():
             font-size: 1.3em;
             animation: pulse 2s infinite;
         }
+        .listening-mode {
+            text-align: center;
+            margin: 20px 0;
+            padding: 30px;
+            background: #3498db;
+            color: white;
+            border-radius: 10px;
+            font-size: 1.5em;
+        }
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -740,14 +749,27 @@ def main():
         
         # Avance automático
         auto_advance = st.checkbox("🔄 Avance automático", False)
-        learning_mode = st.checkbox("📚 Modo Aprendizaje", True)
-        writing_mode = st.checkbox("✍️ Modo Escritura", True)
+        # Modo de estudio (cambiar a radio buttons)
+        st.markdown("**📚 Modo de Estudio:**")
+        study_mode = st.radio(
+            "Selecciona el modo:",
+            ["📚 Modo Aprendizaje", "🎴 Modo Flashcard", "✍️ Modo Escritura", "👂 Modo Escucha"],
+            index=0,  # Por defecto Modo Aprendizaje
+            key="study_mode_radio"
+        )
+
+        # Extraer los valores booleanos para mantener compatibilidad con el código existente
+        learning_mode = study_mode == "📚 Modo Aprendizaje"
+        writing_mode = study_mode == "✍️ Modo Escritura"
+        listening_mode = study_mode == "👂 Modo Escucha"
+        flashcard_mode = study_mode == "🎴 Modo Flashcard"
 
         # Estadísticas
         st.markdown("---")
         st.markdown("### 📊 Estadísticas")
         st.metric("Palabras estudiadas", st.session_state.get('words_studied', 0))
         st.metric("Categoría actual", selected_category)
+        st.metric("Modo actual", study_mode)
         st.metric("Tiempo por fase", f"{wait_time}s")
         
         # Botón de cerrar sesión
@@ -781,12 +803,18 @@ def main():
         st.session_state.history_index = -1
     if 'writing_mode' not in st.session_state:
         st.session_state.writing_mode = writing_mode
+    if 'listening_mode' not in st.session_state:
+        st.session_state.listening_mode = listening_mode
+    if 'flashcard_mode' not in st.session_state:
+        st.session_state.flashcard_mode = flashcard_mode
     
     # Actualizar configuraciones
     st.session_state.wait_time = wait_time
     st.session_state.auto_advance = auto_advance
     st.session_state.learning_mode = learning_mode
     st.session_state.writing_mode = writing_mode
+    st.session_state.listening_mode = listening_mode
+    st.session_state.flashcard_mode = flashcard_mode
 
     # Cambio de categoría
     if selected_category != st.session_state.current_category:
@@ -841,8 +869,10 @@ def main():
                 
                 st.session_state.current_word = word_data['chinese']
                 st.session_state.current_data = word_data
-                if st.session_state.learning_mode:
+                if st.session_state.learning_mode or st.session_state.writing_mode:
                     st.session_state.phase = 1
+                    if st.session_state.phase_start_time is None:
+                        st.session_state.phase_start_time = time.time()
                 else:
                     st.session_state.phase = 1
                 st.session_state.phase_start_time = time.time()
@@ -878,7 +908,7 @@ def main():
                 st.session_state.current_data = word_data
                 
                 # Restaurar la fase original de la palabra
-                if st.session_state.learning_mode:
+                if st.session_state.learning_mode or st.session_state.writing_mode:
                     # En modo aprendizaje, mostrar la palabra completa
                     st.session_state.phase = 3
                 else:
@@ -898,13 +928,8 @@ def main():
                 st.session_state.is_playing = False
                 st.session_state.phase_start_time = None
                 
-                # Si tenemos una palabra actual, guardarla en el historial
-                if st.session_state.current_data:
-                    st.session_state.word_history.append(st.session_state.current_data)
-                    st.session_state.history_index = len(st.session_state.word_history) - 1
-                
-                if st.session_state.learning_mode:
-                    # En modo aprendizaje, ir directo a nueva palabra
+                if st.session_state.learning_mode or st.session_state.writing_mode:
+                    # En modo aprendizaje/escritura, ir directo a nueva palabra
                     st.session_state.words_studied += 1
                     word_data = db.get_random_word(st.session_state.current_category)
                     if word_data:
@@ -916,14 +941,47 @@ def main():
                         st.session_state.current_data = word_data
                         st.session_state.phase_start_time = time.time()
                         st.session_state.is_playing = True  # Reactivar para modo aprendizaje
-                else:
-                    # En modo flashcard, avanzar fase
-                    if st.session_state.phase < 3:
+                        
+                        # Guardar el nuevo flashcard
+                        db.save_last_flashcard(word_data, 1)
+                        
+                elif st.session_state.listening_mode:
+                    # En modo escucha, manejar las fases especiales
+                    if st.session_state.phase < 2:
                         st.session_state.phase += 1
                         st.session_state.phase_start_time = time.time()
-                        st.session_state.is_playing = True  # Reactivar para continuar
+                        st.session_state.is_playing = True
                     else:
-                        # Nueva palabra
+                        # Nueva palabra en modo escucha
+                        st.session_state.words_studied += 1
+                        word_data = db.get_random_word(st.session_state.current_category)
+                        if word_data:
+                            st.session_state.word_history.append(word_data)
+                            st.session_state.history_index = len(st.session_state.word_history) - 1
+                            
+                            st.session_state.current_word = word_data['chinese']
+                            st.session_state.current_data = word_data
+                            st.session_state.phase = 1  # Volver a fase de escucha
+                            st.session_state.phase_start_time = time.time()
+                            st.session_state.is_playing = True
+                            
+                            # Guardar el nuevo flashcard
+                            db.save_last_flashcard(word_data, 1)
+                            
+                else:
+                    # MODO FLASHCARD ESTÁNDAR
+                    if st.session_state.phase < 3:
+                        # Avanzar a la siguiente fase
+                        st.session_state.phase += 1
+                        st.session_state.phase_start_time = time.time()
+                        st.session_state.is_playing = True
+                        
+                        # Guardar el estado actual
+                        if st.session_state.current_data:
+                            db.save_last_flashcard(st.session_state.current_data, st.session_state.phase)
+                            
+                    else:
+                        # Fase 3 completada - nueva palabra
                         st.session_state.words_studied += 1
                         word_data = db.get_random_word(st.session_state.current_category)
                         if word_data:
@@ -933,20 +991,13 @@ def main():
                             
                             st.session_state.current_word = word_data['chinese']
                             st.session_state.current_data = word_data
+                            st.session_state.phase = 1  # Empezar desde fase 1
                             st.session_state.phase_start_time = time.time()
-                            st.session_state.is_playing = True  # Reactivar para continuar
-
-                # Si estamos en modo flashcard y la fase es 3, guardar la palabra actual
-                if not st.session_state.learning_mode and st.session_state.phase == 3:
-                    if st.session_state.current_data:
-                        st.session_state.word_history.append(st.session_state.current_data)
-                        st.session_state.history_index = len(st.session_state.word_history) - 1
-                        st.session_state.current_word = word_data['chinese']
-                        st.session_state.current_data = word_data
-                        st.session_state.phase = 1
-                        st.session_state.phase_start_time = time.time()
-                        st.session_state.is_playing = True  # Reactivar para continuar
-                db.save_last_flashcard(word_data, st.session_state.phase)
+                            st.session_state.is_playing = True
+                            
+                            # Guardar el nuevo flashcard
+                            db.save_last_flashcard(word_data, 1)
+                
                 st.rerun()
     
     with col5:
@@ -967,14 +1018,21 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     else:
-        if st.session_state.learning_mode:
-            # LEARNING MODE: Show everything at once
-            st.markdown("""
-            <div class="phase-indicator phase-1">
-                📚 Modo Aprendizaje: Estudia la palabra completa
-            </div>
-            """, unsafe_allow_html=True)
-            
+        if st.session_state.learning_mode or st.session_state.writing_mode:
+            # LEARNING MODE o WRITING MODE: Show everything at once
+            if st.session_state.writing_mode:
+                st.markdown("""
+                <div class="phase-indicator phase-1">
+                    ✍️ Modo Escritura: Estudia la palabra y practica los trazos
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="phase-indicator phase-1">
+                    📚 Modo Aprendizaje: Estudia la palabra completa
+                </div>
+                """, unsafe_allow_html=True)
+                    
             # Show Chinese word
             if st.session_state.writing_mode:
                 # Modo escritura: integrar stroke order viewer
@@ -1001,10 +1059,6 @@ def main():
                         
                         for i, character in enumerate(chinese_chars):
                             with cols[i]:
-                                # st.markdown(f"<h3 style='text-align: center; color: #1f77b4;'>{character}</h3>", 
-                                #         unsafe_allow_html=True)
-                                
-                                # Aquí integraremos la funcionalidad de stroke order
                                 with st.spinner(f'Cargando trazos para {character}...'):
                                     def fetch_character_data(character):
                                         try:
@@ -1059,16 +1113,6 @@ def main():
                                     
                                     if character_data['success'] and character_data['gif_url']:
                                         st.markdown(f"<h3 class='stroke-chinese-word' style='text-align: center; color: #1f77b4;'>{character} {character_data['pinyin']} {character_data['definition']}</h3>", unsafe_allow_html=True)
-                                        # if show_details:
-                                        #     if character_data['pinyin'] != "N/A":
-                                        #         st.markdown(f"**Pinyin:** {character_data['pinyin']}")                                        
-                                        #     if character_data['definition'] != "N/A":
-                                        #         st.markdown(f"**Definición:** {character_data['definition']}")
-                                        #     if character_data['strokes'] != "N/A":
-                                        #         st.markdown(f"**Trazos:** {character_data['strokes']}")
-                                        #     if character_data['radical'] != "N/A":
-                                        #         st.markdown(f"**Radical:** {character_data['radical']}")
-
                                         gif_base64 = download_gif(character_data['gif_url'])
                                         if gif_base64:
                                             st.markdown(
@@ -1097,104 +1141,245 @@ def main():
             audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
             st.components.v1.html(audio_html, height=100)
             
-            # El resto de la lógica de auto-advance permanece igual...
-        else:
-                # Mostrar indicador de fase
-                phase_info = {
-                    1: {"text": "🎯 Fase 1: Identifica la palabra", "class": "phase-1"},
-                    2: {"text": "📝 Fase 2: Pinyin y traducción", "class": "phase-2"},
-                    3: {"text": "🔊 Fase 3: Escucha la pronunciación", "class": "phase-3"}
-                }
+            if (st.session_state.is_playing and 
+                st.session_state.auto_advance and 
+                st.session_state.phase_start_time is not None):
                 
-                if st.session_state.phase > 0:
-                    current_phase = phase_info[st.session_state.phase]
+                current_time = time.time()
+                elapsed_time = current_time - st.session_state.phase_start_time
+                remaining_time = st.session_state.wait_time - elapsed_time
+                
+                if remaining_time > 0:
+                    # Mostrar countdown
                     st.markdown(f"""
-                    <div class="phase-indicator {current_phase['class']}">
-                        {current_phase['text']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                # Mostrar contenido según la fase
-                if st.session_state.phase >= 1:
-                    # Fase 1: Mostrar palabra china
-                    st.markdown(f"""
-                    <div class="chinese-word">
-                        {st.session_state.current_word}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                if st.session_state.phase >= 2:
-                    # Fase 2: Mostrar pinyin y traducción
-                    st.markdown(f"""
-                    <div class="pinyin-translation">
-                        <div style="font-size: 1.2em; margin-bottom: 10px;">
-                            📝 {st.session_state.current_data['pinyin']}
-                        </div>
-                        <div style="font-size: 1em;">
-                            🇪🇸 {st.session_state.current_data['spanish']}
-                        </div>
-                        <div style="font-size: 0.8em; margin-top: 10px; opacity: 0.8;">
-                            📂 {st.session_state.current_data['category']}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                if st.session_state.phase >= 3:
-                    # Fase 3: Mostrar audio automático
-                    st.markdown("""
-                    <div class="audio-playing">
-                        🔊 ¡Escucha la pronunciación!
+                    <div class="countdown-timer">
+                        ⏳ {'Siguiente fase' if st.session_state.phase < 3 else 'Nueva palabra'} en: {remaining_time:.1f}s
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Reproducir audio automáticamente
-                    audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
-                    st.components.v1.html(audio_html, height=100)
+                    # Refresh cada 0.1 segundos
+                    if current_time - st.session_state.last_update >= 0.1:
+                        st.session_state.last_update = current_time
+                        time.sleep(0.1)
+                        st.rerun()
+                        
+                else:
+                    # Tiempo terminado - avanzar
+                    if st.session_state.phase < 3:
+                        st.session_state.phase += 1
+                        st.session_state.phase_start_time = time.time()
+                        
+                        # Guardar el estado actual
+                        if st.session_state.current_data:
+                            db.save_last_flashcard(st.session_state.current_data, st.session_state.phase)
+                    else:
+                        # Completar palabra y pasar a la siguiente
+                        st.session_state.words_studied += 1
+                        word_data = db.get_random_word(st.session_state.current_category)
+                        if word_data:
+                            # Guardar en historial
+                            st.session_state.word_history.append(word_data)
+                            st.session_state.history_index = len(st.session_state.word_history) - 1
+                            
+                            st.session_state.current_word = word_data['chinese']
+                            st.session_state.current_data = word_data
+                            st.session_state.phase = 1
+                            st.session_state.phase_start_time = time.time()
+                            
+                            # Guardar el nuevo flashcard
+                            db.save_last_flashcard(word_data, 1)
+        elif st.session_state.listening_mode:
+            # LISTENING MODE: Special flow for listening practice
+            if st.session_state.phase == 1:
+                # Phase 1: Just play audio with instructions
+                st.markdown("""
+                <div class="phase-indicator phase-1">
+                    👂 Modo Escucha: Escucha atentamente la pronunciación
+                </div>
+                <div class="listening-mode">
+                    <h2>👂 Escucha la pronunciación</h2>
+                    <p>Presta atención al sonido y trata de identificar la palabra</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                # Botón de audio manual disponible desde la fase 2
-                if st.session_state.phase >= 2 and st.session_state.phase < 3:
-                    audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
-                    st.components.v1.html(audio_html, height=100)
+                # Auto-play audio
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
+                st.components.v1.html(audio_html, height=100)
                 
-                # Lógica de avance automático mejorada
-                if (st.session_state.is_playing and 
-                    st.session_state.auto_advance and 
-                    st.session_state.phase_start_time is not None):
+                # Auto-advance after delay
+                if st.session_state.is_playing and st.session_state.auto_advance:
+                    current_time = time.time()
+                    elapsed_time = current_time - st.session_state.phase_start_time
+                    remaining_time = st.session_state.wait_time * 1.5 - elapsed_time  # Give more time for listening
                     
+                    if remaining_time > 0:
+                        st.markdown(f"""
+                        <div class="countdown-timer">
+                            ⏳ Mostrando palabra en: {remaining_time:.1f}s
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        if current_time - st.session_state.last_update >= 0.1:
+                            st.session_state.last_update = current_time
+                            time.sleep(0.1)
+                            st.rerun()
+                    else:
+                        st.session_state.phase = 2
+                        st.session_state.phase_start_time = time.time()
+                        st.rerun()
+                        
+            elif st.session_state.phase == 2:
+                # Phase 2: Show the full flashcard
+                st.markdown("""
+                <div class="phase-indicator phase-2">
+                    👂 Modo Escucha: Aquí está la palabra completa
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Show full flashcard
+                st.markdown(f"""
+                <div class="chinese-word">
+                    <div class="pinyin">
+                        {st.session_state.current_data['pinyin']}
+                    </div>
+                    {st.session_state.current_word}
+                    <div class="translation">
+                        {st.session_state.current_data['spanish']}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Show audio button
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
+                st.components.v1.html(audio_html, height=100)
+                
+                # Auto-advance to next word
+                if st.session_state.is_playing and st.session_state.auto_advance:
                     current_time = time.time()
                     elapsed_time = current_time - st.session_state.phase_start_time
                     remaining_time = st.session_state.wait_time - elapsed_time
                     
                     if remaining_time > 0:
-                        # Mostrar countdown
                         st.markdown(f"""
                         <div class="countdown-timer">
-                            ⏳ {'Siguiente fase' if st.session_state.phase < 3 else 'Nueva palabra'} en: {remaining_time:.1f}s
+                            ⏳ Nueva palabra en: {remaining_time:.1f}s
                         </div>
                         """, unsafe_allow_html=True)
                         
-                        # Refresh cada 0.1 segundos
                         if current_time - st.session_state.last_update >= 0.1:
                             st.session_state.last_update = current_time
                             time.sleep(0.1)
                             st.rerun()
-                            
                     else:
-                        # Tiempo terminado - avanzar
-                        if st.session_state.phase < 3:
-                            st.session_state.phase += 1
+                        # Move to next word
+                        st.session_state.words_studied += 1
+                        word_data = db.get_random_word(st.session_state.current_category)
+                        if word_data:
+                            st.session_state.word_history.append(word_data)
+                            st.session_state.history_index = len(st.session_state.word_history) - 1
+                            st.session_state.current_word = word_data['chinese']
+                            st.session_state.current_data = word_data
+                            st.session_state.phase = 1  # Back to listening phase
                             st.session_state.phase_start_time = time.time()
-                        else:
-                            # Completar palabra y pasar a la siguiente
-                            st.session_state.words_studied += 1
-                            word_data = db.get_random_word(st.session_state.current_category)
-                            if word_data:
-                                st.session_state.current_word = word_data['chinese']
-                                st.session_state.current_data = word_data
-                                st.session_state.phase = 1
-                                st.session_state.phase_start_time = time.time()
-                        
+                            st.rerun()
+        else:
+            # STANDARD FLASHCARD MODE
+            # Mostrar indicador de fase
+            phase_info = {
+                1: {"text": "🎯 Fase 1: Identifica la palabra", "class": "phase-1"},
+                2: {"text": "📝 Fase 2: Pinyin y traducción", "class": "phase-2"},
+                3: {"text": "🔊 Fase 3: Escucha la pronunciación", "class": "phase-3"}
+            }
+            
+            if st.session_state.phase > 0:
+                current_phase = phase_info[st.session_state.phase]
+                st.markdown(f"""
+                <div class="phase-indicator {current_phase['class']}">
+                    {current_phase['text']}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Mostrar contenido según la fase
+            if st.session_state.phase >= 1:
+                # Fase 1: Mostrar palabra china
+                st.markdown(f"""
+                <div class="chinese-word">
+                    {st.session_state.current_word}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if st.session_state.phase >= 2:
+                # Fase 2: Mostrar pinyin y traducción
+                st.markdown(f"""
+                <div class="pinyin-translation">
+                    <div style="font-size: 1.2em; margin-bottom: 10px;">
+                        📝 {st.session_state.current_data['pinyin']}
+                    </div>
+                    <div style="font-size: 1em;">
+                        🇪🇸 {st.session_state.current_data['spanish']}
+                    </div>
+                    <div style="font-size: 0.8em; margin-top: 10px; opacity: 0.8;">
+                        📂 {st.session_state.current_data['category']}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if st.session_state.phase >= 3:
+                # Fase 3: Mostrar audio automático
+                st.markdown("""
+                <div class="audio-playing">
+                    🔊 ¡Escucha la pronunciación!
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Reproducir audio automáticamente
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
+                st.components.v1.html(audio_html, height=100)
+            
+            # Botón de audio manual disponible desde la fase 2
+            if st.session_state.phase >= 2 and st.session_state.phase < 3:
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
+                st.components.v1.html(audio_html, height=100)
+            
+            # Lógica de avance automático mejorada
+            if (st.session_state.is_playing and 
+                st.session_state.auto_advance and 
+                st.session_state.phase_start_time is not None):
+                
+                current_time = time.time()
+                elapsed_time = current_time - st.session_state.phase_start_time
+                remaining_time = st.session_state.wait_time - elapsed_time
+                
+                if remaining_time > 0:
+                    # Mostrar countdown
+                    st.markdown(f"""
+                    <div class="countdown-timer">
+                        ⏳ {'Siguiente fase' if st.session_state.phase < 3 else 'Nueva palabra'} en: {remaining_time:.1f}s
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Refresh cada 0.1 segundos
+                    if current_time - st.session_state.last_update >= 0.1:
+                        st.session_state.last_update = current_time
+                        time.sleep(0.1)
                         st.rerun()
+                        
+                else:
+                    # Tiempo terminado - avanzar
+                    if st.session_state.phase < 3:
+                        st.session_state.phase += 1
+                        st.session_state.phase_start_time = time.time()
+                    else:
+                        # Completar palabra y pasar a la siguiente
+                        st.session_state.words_studied += 1
+                        word_data = db.get_random_word(st.session_state.current_category)
+                        if word_data:
+                            st.session_state.current_word = word_data['chinese']
+                            st.session_state.current_data = word_data
+                            st.session_state.phase = 1
+                            st.session_state.phase_start_time = time.time()
+                    
+                    st.rerun()
 
 if __name__ == "__main__":
     main()
