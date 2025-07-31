@@ -223,7 +223,7 @@ class VocabularyDB:
     def import_from_csv(self, csv_data: str) -> Tuple[int, int]:
         """Importar palabras desde CSV"""
         try:
-            df = pd.read_csv(io.StringIO(csv_data))
+            df = pd.read_csv(io.StringIO(csv_data), sep='|')
             
             # Verificar columnas requeridas
             required_columns = ['chinese', 'pinyin', 'spanish', 'category']
@@ -497,13 +497,13 @@ def admin_panel(db: VocabularyDB):
     with tab3:
         st.markdown("### Importar desde CSV")
         
-        st.info("El CSV debe contener las columnas: chinese, pinyin, spanish, category")
+        st.info("El CSV debe contener las columnas: chinese,pinyin,spanish,category")
         
         # Ejemplo de formato
         st.markdown("**Ejemplo de formato CSV:**")
-        example_csv = """chinese,pinyin,spanish,category
-你好,nǐ hǎo,Hola,Saludos
-再见,zài jiàn,Adiós,Saludos"""
+        example_csv = """chinese|pinyin|spanish|category
+你好|nǐ hǎo|Hola|Saludos
+再见|zài jiàn|Adiós|Saludos"""
         st.code(example_csv)
         
         uploaded_file = st.file_uploader("Cargar archivo CSV", type=['csv'])
@@ -512,7 +512,7 @@ def admin_panel(db: VocabularyDB):
             # Mostrar preview
             csv_data = uploaded_file.getvalue().decode('utf-8')
             st.markdown("**Vista previa:**")
-            preview_df = pd.read_csv(io.StringIO(csv_data))
+            preview_df = pd.read_csv(io.StringIO(csv_data), sep='|')
             st.dataframe(preview_df.head())
             
             if st.button("📥 Importar Datos"):
@@ -541,7 +541,7 @@ def admin_panel(db: VocabularyDB):
         st.metric("Total de palabras a exportar", len(df))
         
         # Preparar CSV
-        csv = df.to_csv(index=False)
+        csv = df.to_csv(index=False, sep='|')
         
         st.download_button(
             label="📥 Descargar CSV",
