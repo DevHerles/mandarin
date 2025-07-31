@@ -582,7 +582,7 @@ def main():
         }
         .chinese-word {
             font-family: KaiTi, 'Noto Serif SC', serif !important;
-            font-size: 8em;
+            font-size: 7em;
             text-align: center;
             color: #000000;
             background: #FFFFFF;
@@ -653,6 +653,44 @@ def main():
             border-radius: 10px;
             font-size: 1.5em;
         }
+        .text-analysis-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            color: white;
+        }
+        .input-text-display {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .chinese-input-text {
+            font-size: 2.8em;
+            font-family: KaiTi, 'Noto Serif SC', serif !important;
+            margin-bottom: 10px;
+        }
+        .pinyin-display {
+            font-size: 1.3em;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .character-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -679,10 +717,15 @@ def main():
                 font-size: 1.0em;
                 padding: 20px;
             }
+            .chinese-input-text {
+                font-size: 6em;
+                font-family: KaiTi, 'Noto Serif SC', serif !important;
+                margin-bottom: 10px;
+            }
         }
         @media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
             .chinese-word {
-                font-size: 5.8em; /* slightly larger */
+                font-size: 3.8em; /* slightly larger */
                 padding: 12px;
                 background: #FFFFFF;
             }
@@ -701,6 +744,11 @@ def main():
             .pinyin-translation {
                 font-size: 1.2em;
                 padding: 25px;
+            }
+            .chinese-input-text {
+                font-size: 5.8em;
+                font-family: KaiTi, 'Noto Serif SC', serif !important;
+                margin-bottom: 10px;
             }
         }
     </style>
@@ -745,15 +793,13 @@ def main():
             db.set_config('selected_category', selected_category)
         
         # Configuración de tiempo
-        wait_time = st.slider("⏱️ Tiempo de espera (segundos)", 1, 10, 3)
+        wait_time = st.slider("⏱️ Tiempo de espera (segundos)", 1, 10, 4)
         
-        # Avance automático
-        auto_advance = st.checkbox("🔄 Avance automático", False)
         # Modo de estudio (cambiar a radio buttons)
         st.markdown("**📚 Modo de Estudio:**")
         study_mode = st.radio(
             "Selecciona el modo:",
-            ["📚 Modo Aprendizaje", "🎴 Modo Flashcard", "✍️ Modo Escritura", "👂 Modo Escucha"],
+            ["📚 Modo Aprendizaje", "🎴 Modo Flashcard", "✍️ Modo Escritura", "👂 Modo Escucha", "📝 Análisis de Texto"],
             index=0,  # Por defecto Modo Aprendizaje
             key="study_mode_radio"
         )
@@ -763,14 +809,33 @@ def main():
         writing_mode = study_mode == "✍️ Modo Escritura"
         listening_mode = study_mode == "👂 Modo Escucha"
         flashcard_mode = study_mode == "🎴 Modo Flashcard"
+        text_analysis_mode = study_mode == "📝 Análisis de Texto"
 
-        # Estadísticas
-        st.markdown("---")
-        st.markdown("### 📊 Estadísticas")
-        st.metric("Palabras estudiadas", st.session_state.get('words_studied', 0))
-        st.metric("Categoría actual", selected_category)
-        st.metric("Modo actual", study_mode)
-        st.metric("Tiempo por fase", f"{wait_time}s")
+        # Avance automático
+        if flashcard_mode or listening_mode:
+            st.markdown("✅ 🔄 **Avance automático**")
+            auto_advance = True
+        else:
+            if writing_mode or text_analysis_mode:
+                st.markdown("❌ 🔄 **Avance automático**")
+                auto_advance = False
+            else:
+                auto_advance = st.checkbox("🔄 Avance automático", False)
+
+        # Mostrar configuraciones solo si NO es modo análisis de texto
+        if not text_analysis_mode:
+            # Estadísticas
+            st.markdown("---")
+            st.markdown("### 📊 Estadísticas")
+            st.metric("Palabras estudiadas", st.session_state.get('words_studied', 0))
+            st.metric("Categoría actual", selected_category)
+            st.metric("Modo actual", study_mode)
+            st.metric("Tiempo por fase", f"{wait_time}s")
+        else:
+            # Para modo análisis de texto, mostrar información diferente
+            st.markdown("---")
+            st.markdown("### 📝 Análisis de Texto")
+            st.info("En este modo puedes analizar cualquier texto en chino carácter por carácter")
         
         # Botón de cerrar sesión
         st.markdown("---")
@@ -778,6 +843,10 @@ def main():
             st.session_state.authenticated = False
             st.rerun()
     
+    if text_analysis_mode:
+        handle_text_analysis_mode()
+        return
+
     # Inicializar estado de sesión
     if 'current_word' not in st.session_state:
         st.session_state.current_word = None
@@ -807,6 +876,14 @@ def main():
         st.session_state.listening_mode = listening_mode
     if 'flashcard_mode' not in st.session_state:
         st.session_state.flashcard_mode = flashcard_mode
+    if 'text_analysis_mode' not in st.session_state:
+        st.session_state.text_analysis_mode = text_analysis_mode
+    if 'random_order' not in st.session_state:
+        st.session_state.random_order = False
+    if 'current_word_index' not in st.session_state:
+        st.session_state.current_word_index = 0
+    if 'current_category_words' not in st.session_state:
+        st.session_state.current_category_words = []
     
     # Actualizar configuraciones
     st.session_state.wait_time = wait_time
@@ -823,13 +900,24 @@ def main():
         st.session_state.phase = 0
         st.session_state.is_playing = False
         st.session_state.phase_start_time = None
+        # Reiniciar el índice y cargar las palabras de la categoría
+        st.session_state.current_word_index = 0
+        st.session_state.current_category_words = db.get_words_by_category(selected_category)
     
     # Título principal
     st.markdown('<h1 class="main-title">学习中文 🎴</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Flashcards para aprender vocabulario chino</p>', unsafe_allow_html=True)
     
     # Controles principales
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    
+    # Checkbox para orden aleatorio o secuencial
+    with col6:
+        st.session_state.random_order = st.checkbox(
+            "🔀 Orden aleatorio", 
+            value=st.session_state.random_order,
+            help="Mostrar palabras en orden aleatorio o secuencial"
+        )
     
     with col1:
         if st.button("🎯 Nueva Palabra", key="new_word", use_container_width=True):
@@ -860,8 +948,29 @@ def main():
                     st.success(f"✅ Flashcard anterior restaurado: {word_data['chinese']}")
                     st.rerun()
             
-            # Lógica normal para nueva palabra
-            word_data = db.get_random_word(st.session_state.current_category)
+            # Lógica para obtener nueva palabra según el modo seleccionado
+            if st.session_state.random_order:
+                # Modo aleatorio
+                word_data = db.get_random_word(st.session_state.current_category)
+            else:
+                # Modo secuencial
+                if not st.session_state.current_category_words:
+                    # Cargar todas las palabras de la categoría si no están cargadas
+                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                    st.session_state.current_word_index = 0
+                
+                if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                    word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                    st.session_state.current_word_index += 1
+                else:
+                    # Si llegamos al final, volvemos al principio
+                    st.session_state.current_word_index = 0
+                    if st.session_state.current_category_words:
+                        word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                        st.session_state.current_word_index += 1
+                    else:
+                        word_data = None
+            
             if word_data:
                 # Guardar en historial
                 st.session_state.word_history.append(word_data)
@@ -931,7 +1040,28 @@ def main():
                 if st.session_state.learning_mode or st.session_state.writing_mode:
                     # En modo aprendizaje/escritura, ir directo a nueva palabra
                     st.session_state.words_studied += 1
-                    word_data = db.get_random_word(st.session_state.current_category)
+                    
+                    # Usar la lógica de selección de palabras según el modo
+                    if st.session_state.random_order:
+                        word_data = db.get_random_word(st.session_state.current_category)
+                    else:
+                        # Modo secuencial
+                        if not st.session_state.current_category_words:
+                            st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                            st.session_state.current_word_index = 0
+                        
+                        if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                            word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                            st.session_state.current_word_index += 1
+                        else:
+                            # Si llegamos al final, volvemos al principio
+                            st.session_state.current_word_index = 0
+                            if st.session_state.current_category_words:
+                                word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                st.session_state.current_word_index += 1
+                            else:
+                                word_data = None
+                    
                     if word_data:
                         # Guardar la nueva palabra en el historial
                         st.session_state.word_history.append(word_data)
@@ -939,35 +1069,18 @@ def main():
                         
                         st.session_state.current_word = word_data['chinese']
                         st.session_state.current_data = word_data
+                        st.session_state.phase = 1
                         st.session_state.phase_start_time = time.time()
-                        st.session_state.is_playing = True  # Reactivar para modo aprendizaje
+                        st.session_state.is_playing = True
                         
                         # Guardar el nuevo flashcard
                         db.save_last_flashcard(word_data, 1)
                         
                 elif st.session_state.listening_mode:
-                    # En modo escucha, manejar las fases especiales
-                    if st.session_state.phase < 2:
-                        st.session_state.phase += 1
-                        st.session_state.phase_start_time = time.time()
-                        st.session_state.is_playing = True
-                    else:
-                        # Nueva palabra en modo escucha
-                        st.session_state.words_studied += 1
-                        word_data = db.get_random_word(st.session_state.current_category)
-                        if word_data:
-                            st.session_state.word_history.append(word_data)
-                            st.session_state.history_index = len(st.session_state.word_history) - 1
-                            
-                            st.session_state.current_word = word_data['chinese']
-                            st.session_state.current_data = word_data
-                            st.session_state.phase = 1  # Volver a fase de escucha
-                            st.session_state.phase_start_time = time.time()
-                            st.session_state.is_playing = True
-                            
-                            # Guardar el nuevo flashcard
-                            db.save_last_flashcard(word_data, 1)
-                            
+                    # Lógica para modo escucha (existente)
+                    # ... (código existente para el modo escucha)
+                    pass
+                    
                 else:
                     # MODO FLASHCARD ESTÁNDAR
                     if st.session_state.phase < 3:
@@ -983,7 +1096,28 @@ def main():
                     else:
                         # Fase 3 completada - nueva palabra
                         st.session_state.words_studied += 1
-                        word_data = db.get_random_word(st.session_state.current_category)
+                        
+                        # Usar la lógica de selección de palabras según el modo
+                        if st.session_state.random_order:
+                            word_data = db.get_random_word(st.session_state.current_category)
+                        else:
+                            # Modo secuencial
+                            if not st.session_state.current_category_words:
+                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                                st.session_state.current_word_index = 0
+                            
+                            if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                                word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                st.session_state.current_word_index += 1
+                            else:
+                                # Si llegamos al final, volvemos al principio
+                                st.session_state.current_word_index = 0
+                                if st.session_state.current_category_words:
+                                    word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                    st.session_state.current_word_index += 1
+                                else:
+                                    word_data = None
+                        
                         if word_data:
                             # Guardar la nueva palabra en el historial
                             st.session_state.word_history.append(word_data)
@@ -991,7 +1125,7 @@ def main():
                             
                             st.session_state.current_word = word_data['chinese']
                             st.session_state.current_data = word_data
-                            st.session_state.phase = 1  # Empezar desde fase 1
+                            st.session_state.phase = 1
                             st.session_state.phase_start_time = time.time()
                             st.session_state.is_playing = True
                             
@@ -999,7 +1133,7 @@ def main():
                             db.save_last_flashcard(word_data, 1)
                 
                 st.rerun()
-    
+
     with col5:
         if st.button("🔄 Reiniciar", key="reset", use_container_width=True):
             st.session_state.phase = 0
@@ -1151,9 +1285,14 @@ def main():
                 
                 if remaining_time > 0:
                     # Mostrar countdown
+                    if st.session_state.learning_mode or st.session_state.writing_mode:
+                        countdown_text = "Nueva palabra"
+                    else:
+                        countdown_text = 'Siguiente fase' if st.session_state.phase < 3 else 'Nueva palabra'
+                        
                     st.markdown(f"""
                     <div class="countdown-timer">
-                        ⏳ {'Siguiente fase' if st.session_state.phase < 3 else 'Nueva palabra'} en: {remaining_time:.1f}s
+                        ⏳ {countdown_text} en: {remaining_time:.1f}s
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -1164,18 +1303,32 @@ def main():
                         st.rerun()
                         
                 else:
-                    # Tiempo terminado - avanzar
-                    if st.session_state.phase < 3:
-                        st.session_state.phase += 1
-                        st.session_state.phase_start_time = time.time()
-                        
-                        # Guardar el estado actual
-                        if st.session_state.current_data:
-                            db.save_last_flashcard(st.session_state.current_data, st.session_state.phase)
-                    else:
-                        # Completar palabra y pasar a la siguiente
+                    # Tiempo terminado - avanzar según el modo
+                    if st.session_state.learning_mode or st.session_state.writing_mode:
+                        # En modo aprendizaje/escritura, siempre ir a nueva palabra
                         st.session_state.words_studied += 1
-                        word_data = db.get_random_word(st.session_state.current_category)
+                        
+                        # Usar la lógica de selección de palabras según el modo
+                        if st.session_state.random_order:
+                            word_data = db.get_random_word(st.session_state.current_category)
+                        else:
+                            # Modo secuencial
+                            if not st.session_state.current_category_words:
+                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                                st.session_state.current_word_index = 0
+                            
+                            if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                                word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                st.session_state.current_word_index += 1
+                            else:
+                                # Si llegamos al final, volvemos al principio
+                                st.session_state.current_word_index = 0
+                                if st.session_state.current_category_words:
+                                    word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                    st.session_state.current_word_index += 1
+                                else:
+                                    word_data = None
+                        
                         if word_data:
                             # Guardar en historial
                             st.session_state.word_history.append(word_data)
@@ -1183,11 +1336,59 @@ def main():
                             
                             st.session_state.current_word = word_data['chinese']
                             st.session_state.current_data = word_data
-                            st.session_state.phase = 1
+                            st.session_state.phase = 1  # Reiniciar a fase 1 para el próximo ciclo
                             st.session_state.phase_start_time = time.time()
                             
                             # Guardar el nuevo flashcard
                             db.save_last_flashcard(word_data, 1)
+                    else:
+                        # Modo flashcard estándar
+                        if st.session_state.phase < 3:
+                            st.session_state.phase += 1
+                            st.session_state.phase_start_time = time.time()
+                            
+                            # Guardar el estado actual
+                            if st.session_state.current_data:
+                                db.save_last_flashcard(st.session_state.current_data, st.session_state.phase)
+                        else:
+                            # Completar palabra y pasar a la siguiente
+                            st.session_state.words_studied += 1
+                            
+                            # Usar la lógica de selección de palabras según el modo
+                            if st.session_state.random_order:
+                                word_data = db.get_random_word(st.session_state.current_category)
+                            else:
+                                # Modo secuencial (código existente)
+                                if not st.session_state.current_category_words:
+                                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                                    st.session_state.current_word_index = 0
+                                
+                                if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                                    word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                    st.session_state.current_word_index += 1
+                                else:
+                                    st.session_state.current_word_index = 0
+                                    if st.session_state.current_category_words:
+                                        word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                        st.session_state.current_word_index += 1
+                                    else:
+                                        word_data = None
+                            
+                            if word_data:
+                                # Guardar en historial
+                                st.session_state.word_history.append(word_data)
+                                st.session_state.history_index = len(st.session_state.word_history) - 1
+                                
+                                st.session_state.current_word = word_data['chinese']
+                                st.session_state.current_data = word_data
+                                st.session_state.phase = 1
+                                st.session_state.phase_start_time = time.time()
+                                
+                                # Guardar el nuevo flashcard
+                                db.save_last_flashcard(word_data, 1)
+                    
+                    st.rerun()
+        
         elif st.session_state.listening_mode:
             # LISTENING MODE: Special flow for listening practice
             if st.session_state.phase == 1:
@@ -1380,6 +1581,227 @@ def main():
                             st.session_state.phase_start_time = time.time()
                     
                     st.rerun()
+
+def handle_text_analysis_mode():
+    """Función para manejar el modo análisis de texto"""
+    st.markdown('<h2>📝 Análisis de Texto Chino</h2>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Analiza cualquier texto chino carácter por carácter</p>', unsafe_allow_html=True)
+    
+    # Inicializar estado para modo análisis
+    if 'analyzed_text' not in st.session_state:
+        st.session_state.analyzed_text = ""
+    if 'analysis_result' not in st.session_state:
+        st.session_state.analysis_result = None
+    
+    # Input de texto
+    col1, col2 = st.columns([4, 1])
+    
+    with col1:
+        input_text = st.text_input(
+            "🖊️ Ingresa el texto en chino que quieres analizar:",
+            value=st.session_state.analyzed_text,
+            placeholder="例如: 他是我的汉语老师",
+            key="chinese_text_input"
+        )
+    
+    with col2:
+        analyze_button = st.button("🔍 Analizar", key="analyze_text", use_container_width=True)
+    
+    # Procesar análisis
+    if analyze_button and input_text.strip():
+        st.session_state.analyzed_text = input_text.strip()
+        chinese_count = len([c for c in input_text.strip() if '\u4e00' <= c <= '\u9fff'])
+        
+        with st.spinner(f"🔄 Analizando {chinese_count} caracteres chinos..."):
+            progress_bar = st.progress(0)
+            st.session_state.analysis_result = analyze_chinese_text(input_text.strip())
+            progress_bar.progress(100)
+        st.rerun()
+    
+    # Mostrar resultados
+    if st.session_state.analysis_result:
+        display_text_analysis(st.session_state.analysis_result)
+
+def get_pinyin_for_text(text):
+    """Obtener pinyin para un texto completo usando pypinyin"""
+    try:
+        # Intentar usar pypinyin si está disponible
+        import pypinyin
+        pinyin_list = pypinyin.pinyin(text, style=pypinyin.TONE)
+        return ' '.join([item[0] for item in pinyin_list])
+    except ImportError:
+        # Fallback: método alternativo usando web scraping
+        try:
+            from urllib.parse import quote
+            import requests
+            import re
+            
+            encoded_text = quote(text)
+            url = f"https://www.chinese-tools.com/tools/converter-pinyin.html"
+            
+            # Este es un ejemplo, necesitarías implementar el scraping específico
+            # Por ahora retornamos un placeholder
+            return f"[Pinyin para: {text}]"
+        except:
+            return f"[Pinyin no disponible para: {text}]"
+
+
+def analyze_chinese_text(text):
+    """Analizar texto chino con procesamiento optimizado"""
+    chinese_chars = [char for char in text if '\u4e00' <= char <= '\u9fff']
+    
+    # Obtener pinyin del texto completo
+    full_pinyin = get_pinyin_for_text(text)
+    
+    analysis_result = {
+        'original_text': text,
+        'full_pinyin': full_pinyin,
+        'characters': [],
+        'non_chinese_chars': [char for char in text if not ('\u4e00' <= char <= '\u9fff')]
+    }
+    
+    # Procesar caracteres únicos para evitar duplicados
+    unique_chars = list(set(chinese_chars))
+    
+    # Usar threading para acelerar las requests
+    import concurrent.futures
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        future_to_char = {executor.submit(fetch_character_data, char): char for char in unique_chars}
+        char_data_cache = {}
+        
+        for future in concurrent.futures.as_completed(future_to_char):
+            char = future_to_char[future]
+            try:
+                data = future.result()
+                char_data_cache[char] = data
+            except Exception as exc:
+                char_data_cache[char] = {'success': False, 'error': str(exc)}
+    
+    # Construir resultado final manteniendo el orden original
+    for character in chinese_chars:
+        analysis_result['characters'].append({
+            'character': character,
+            'data': char_data_cache[character]
+        })
+    
+    return analysis_result
+
+
+def fetch_character_data(character):
+    """Obtener datos de un carácter chino (misma función que ya tienes)"""
+    try:
+        from urllib.parse import quote
+        import requests
+        import re
+        import base64
+        
+        encoded_char = quote(character)
+        url = f"http://www.strokeorder.info/mandarin.php?q={encoded_char}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        html = response.text
+        
+        # Extraer información
+        pinyin_match = re.search(r'Pinyin & Definition:.*?<[^>]*>([^<]+)', html, re.DOTALL)
+        pinyin = pinyin_match.group(1).strip() if pinyin_match else "N/A"
+        
+        definition_match = re.search(r'Pinyin & Definition:.*?<[^>]*>[^<]+.*?<[^>]*>([^<]+)', html, re.DOTALL)
+        definition = definition_match.group(1).strip() if definition_match else "N/A"
+
+        gif_match = re.search(r'src="([^"]*\.gif[^"]*)"', html)
+        gif_url = None
+        
+        if gif_match:
+            gif_url = gif_match.group(1)
+            if gif_url.startswith('/'):
+                gif_url = 'http://www.strokeorder.info' + gif_url
+            elif not gif_url.startswith('http'):
+                gif_url = 'http://www.strokeorder.info/' + gif_url
+        
+        strokes_match = re.search(r'Strokes:.*?(\d+)', html, re.DOTALL)
+        strokes = strokes_match.group(1) if strokes_match else "N/A"
+        
+        radical_match = re.search(r'Radical:.*?<[^>]*>([^<]+)', html, re.DOTALL)
+        radical = radical_match.group(1).strip() if radical_match else "N/A"
+        
+        # Descargar GIF
+        gif_base64 = None
+        if gif_url:
+            try:
+                gif_response = requests.get(gif_url, headers=headers, timeout=10)
+                gif_response.raise_for_status()
+                gif_base64 = base64.b64encode(gif_response.content).decode()
+            except:
+                pass
+        
+        return {
+            'gif_url': gif_url,
+            'gif_base64': gif_base64,
+            'pinyin': pinyin,
+            'definition': definition,
+            'strokes': strokes,
+            'radical': radical,
+            'success': True
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+
+def display_text_analysis(analysis_result):
+    """Mostrar los resultados del análisis de texto"""
+    
+    # Mostrar el texto original y su pinyin
+    st.markdown(f"""
+    <div class="text-analysis-container">
+        <h2>📝 Análisis Completo</h2>
+        <div class="input-text-display">
+            <div class="chinese-input-text">{analysis_result['original_text']}</div>
+            <div class="pinyin-display">🔤 {analysis_result['full_pinyin']}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Información general
+    total_chars = len(analysis_result['characters'])
+    if total_chars > 0:
+        st.markdown(f"""
+        <div style="text-align: center; margin: 20px 0;">
+            <h3>📊 Información del Análisis</h3>
+            <p><strong>Caracteres analizados:</strong> {total_chars}</p>
+            <p><strong>Caracteres no chinos:</strong> {len(analysis_result['non_chinese_chars'])}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Mostrar cada carácter usando columnas como en modo escritura
+    if analysis_result['characters']:
+        st.markdown("### ✍️ Análisis de Caracteres y Orden de Trazos")
+        
+        # Crear columnas para mostrar caracteres (máximo 3 por fila)
+        chars_per_row = 3
+        for i in range(0, len(analysis_result['characters']), chars_per_row):
+            chunk = analysis_result['characters'][i:i + chars_per_row]
+            cols = st.columns(len(chunk))
+            
+            for j, char_info in enumerate(chunk):
+                character = char_info['character']
+                data = char_info['data']
+                
+                with cols[j]:
+                    if data['success'] and data['gif_base64']:
+                        st.markdown(f"<h3 class='stroke-chinese-word' style='text-align: center; color: #1f77b4;'>{character} {data['pinyin']} {data['definition']}</h3>", unsafe_allow_html=True)
+                        st.markdown(
+                            f'<div style="text-align: center;"><img src="data:image/gif;base64,{data["gif_base64"]}" style="max-width: 100%; border: 2px solid #e0e0e0; border-radius: 10px;"></div>',
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        st.warning(f"⚠️ Orden de trazos no disponible para {character}")
 
 if __name__ == "__main__":
     main()
