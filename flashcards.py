@@ -40,9 +40,17 @@ class VocabularyDB:
                 pinyin TEXT NOT NULL,
                 spanish TEXT NOT NULL,
                 category TEXT NOT NULL,
+                needs_review BOOLEAN DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # Verificar si la columna needs_review existe, si no, agregarla
+        cursor.execute("PRAGMA table_info(vocabulary)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        if 'needs_review' not in columns:
+            cursor.execute('ALTER TABLE vocabulary ADD COLUMN needs_review BOOLEAN DEFAULT 0')
         
         # Crear tabla de configuración
         cursor.execute('''
@@ -129,6 +137,87 @@ class VocabularyDB:
         conn.commit()
         conn.close()
     
+    def toggle_word_review(self, chinese: str, pinyin: str) -> bool:
+        """Alternar estado de revisión de una palabra"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Obtener estado actual
+            cursor.execute('''
+                SELECT needs_review FROM vocabulary 
+                WHERE chinese = ? AND pinyin = ?
+            ''', (chinese, pinyin))
+            
+            result = cursor.fetchone()
+            if result:
+                new_state = 0 if result[0] else 1
+                cursor.execute('''
+                    UPDATE vocabulary 
+                    SET needs_review = ?
+                    WHERE chinese = ? AND pinyin = ?
+                ''', (new_state, chinese, pinyin))
+                conn.commit()
+                conn.close()
+                return bool(new_state)
+            
+            conn.close()
+            return False
+        except Exception as e:
+            st.error(f"Error al cambiar estado de revisión: {e}")
+            return False
+
+    def get_word_review_status(self, chinese: str, pinyin: str) -> bool:
+        """Obtener estado de revisión de una palabra"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT needs_review FROM vocabulary 
+                WHERE chinese = ? AND pinyin = ?
+            ''', (chinese, pinyin))
+            result = cursor.fetchone()
+            conn.close()
+            return bool(result[0]) if result else False
+        except:
+            return False
+
+    def get_review_words_by_category(self, category: str) -> List[Dict]:
+        """Obtener palabras marcadas para revisión por categoría"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        if category == "Todas las categorías":
+            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE needs_review = 1")
+        else:
+            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ? AND needs_review = 1", (category,))
+        
+        words = []
+        for row in cursor.fetchall():
+            words.append({
+                'chinese': row[0],
+                'pinyin': row[1],
+                'spanish': row[2],
+                'category': row[3]
+            })
+        
+        conn.close()
+        return words
+
+    def get_review_count(self, category: str = None) -> int:
+        """Obtener cantidad de palabras marcadas para revisión"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        if category and category != "Todas las categorías":
+            cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE needs_review = 1 AND category = ?", (category,))
+        else:
+            cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE needs_review = 1")
+        
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+
     def get_categories(self) -> List[str]:
         """Obtener todas las categorías disponibles"""
         conn = sqlite3.connect(self.db_path)
@@ -138,15 +227,21 @@ class VocabularyDB:
         conn.close()
         return categories
     
-    def get_words_by_category(self, category: str) -> List[Dict]:
-        """Obtener palabras por categoría"""
+    def get_words_by_category(self, category: str, review_only: bool = False) -> List[Dict]:
+        """Obtener palabras por categoría con opción de filtrar solo las de revisión"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        if category == "Todas las categorías":
-            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary")
+        if review_only:
+            if category == "Todas las categorías":
+                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE needs_review = 1")
+            else:
+                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ? AND needs_review = 1", (category,))
         else:
-            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ?", (category,))
+            if category == "Todas las categorías":
+                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary")
+            else:
+                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ?", (category,))
         
         words = []
         for row in cursor.fetchall():
@@ -160,9 +255,9 @@ class VocabularyDB:
         conn.close()
         return words
     
-    def get_random_word(self, category: str) -> Optional[Dict]:
-        """Obtener una palabra aleatoria de la categoría"""
-        words = self.get_words_by_category(category)
+    def get_random_word(self, category: str, review_only: bool = False) -> Optional[Dict]:
+        """Obtener una palabra aleatoria de la categoría con opción de filtrar solo las de revisión"""
+        words = self.get_words_by_category(category, review_only)
         if words:
             return random.choice(words)
         return None
@@ -698,7 +793,7 @@ def main():
         }
         @media (max-width: 768px) and (orientation: portrait) {
             .chinese-word {
-                font-size: 6em;
+                font-size: 4em;
                 padding: 10px;
                 background: #FFFFFF;
                 .pinyin {
@@ -708,7 +803,7 @@ def main():
                 }
 
                 .translation {
-                    font-size: 0.2em;
+                    font-size: 0.3em;
                     font-family: 'Montserrat', sans-serif;
                 }
                 
@@ -822,6 +917,18 @@ def main():
             else:
                 auto_advance = st.checkbox("🔄 Avance automático", False)
 
+        review_filter = st.checkbox(
+            "🔄 Solo palabras para repasar",
+            value=False,
+            key="review_filter",
+            help="Mostrar únicamente las palabras marcadas para repaso"
+        )
+        
+        # Mostrar estadísticas de revisión
+        review_count = db.get_review_count(selected_category)
+        if review_count > 0:
+            st.info(f"📝 {review_count} palabra(s) marcada(s) para repasar en esta categoría")
+
         # Mostrar configuraciones solo si NO es modo análisis de texto
         if not text_analysis_mode:
             # Estadísticas
@@ -831,6 +938,8 @@ def main():
             st.metric("Categoría actual", selected_category)
             st.metric("Modo actual", study_mode)
             st.metric("Tiempo por fase", f"{wait_time}s")
+            st.metric("Palabras para repasar", db.get_review_count(selected_category))
+
         else:
             # Para modo análisis de texto, mostrar información diferente
             st.markdown("---")
@@ -884,6 +993,8 @@ def main():
         st.session_state.current_word_index = 0
     if 'current_category_words' not in st.session_state:
         st.session_state.current_category_words = []
+    if 'review_filter' not in st.session_state:
+        st.session_state.review_filter = False
     
     # Actualizar configuraciones
     st.session_state.wait_time = wait_time
@@ -903,6 +1014,15 @@ def main():
         # Reiniciar el índice y cargar las palabras de la categoría
         st.session_state.current_word_index = 0
         st.session_state.current_category_words = db.get_words_by_category(selected_category)
+    
+    if review_filter != st.session_state.review_filter:
+        st.session_state.review_filter = review_filter
+        st.session_state.current_word = None
+        st.session_state.phase = 0
+        st.session_state.is_playing = False
+        st.session_state.phase_start_time = None
+        st.session_state.current_word_index = 0
+        st.session_state.current_category_words = []
     
     # Título principal
     st.markdown('<h1 class="main-title">学习中文 🎴</h1>', unsafe_allow_html=True)
@@ -951,12 +1071,12 @@ def main():
             # Lógica para obtener nueva palabra según el modo seleccionado
             if st.session_state.random_order:
                 # Modo aleatorio
-                word_data = db.get_random_word(st.session_state.current_category)
+                word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
             else:
                 # Modo secuencial
                 if not st.session_state.current_category_words:
                     # Cargar todas las palabras de la categoría si no están cargadas
-                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
                     st.session_state.current_word_index = 0
                 
                 if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1043,11 +1163,11 @@ def main():
                     
                     # Usar la lógica de selección de palabras según el modo
                     if st.session_state.random_order:
-                        word_data = db.get_random_word(st.session_state.current_category)
+                        word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
                     else:
                         # Modo secuencial
                         if not st.session_state.current_category_words:
-                            st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                            st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
                             st.session_state.current_word_index = 0
                         
                         if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1099,11 +1219,11 @@ def main():
                         
                         # Usar la lógica de selección de palabras según el modo
                         if st.session_state.random_order:
-                            word_data = db.get_random_word(st.session_state.current_category)
+                            word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
                         else:
                             # Modo secuencial
                             if not st.session_state.current_category_words:
-                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
                                 st.session_state.current_word_index = 0
                             
                             if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1142,6 +1262,33 @@ def main():
             st.session_state.phase_start_time = None
             st.session_state.words_studied = 0
             st.rerun()
+
+    with col6:
+        # Mover el checkbox de orden aleatorio aquí si hay espacio, o crear nueva fila
+        if st.session_state.current_word and st.session_state.current_data:
+            # Verificar estado actual de revisión
+            is_marked = db.get_word_review_status(
+                st.session_state.current_data['chinese'], 
+                st.session_state.current_data['pinyin']
+            )
+            
+            button_text = "✅ Quitar Repaso" if is_marked else "🔄 Marcar Repaso"
+            button_color = "#e74c3c" if is_marked else "#3498db"
+            
+            if st.button(button_text, key="toggle_review", use_container_width=True):
+                new_state = db.toggle_word_review(
+                    st.session_state.current_data['chinese'],
+                    st.session_state.current_data['pinyin']
+                )
+                
+                if new_state:
+                    st.success("✅ Palabra marcada para repasar")
+                else:
+                    st.success("❌ Palabra quitada de repaso")
+                
+                # Pequeña pausa para mostrar el mensaje
+                time.sleep(0.5)
+                st.rerun()
     
     # Área principal de flashcard
     if st.session_state.current_word is None:
@@ -1152,6 +1299,20 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     else:
+        if st.session_state.current_data:
+            is_marked = db.get_word_review_status(
+                st.session_state.current_data['chinese'], 
+                st.session_state.current_data['pinyin']
+            )
+            
+            review_indicator = """
+            <div style="position: absolute; top: 10px; right: 10px; 
+                        background: #e74c3c; color: white; padding: 5px 10px; 
+                        border-radius: 15px; font-size: 0.8em;">
+                🔄 Para Repasar
+            </div>
+            """ if is_marked else ""
+        
         if st.session_state.learning_mode or st.session_state.writing_mode:
             # LEARNING MODE o WRITING MODE: Show everything at once
             if st.session_state.writing_mode:
@@ -1171,7 +1332,8 @@ def main():
             if st.session_state.writing_mode:
                 # Modo escritura: integrar stroke order viewer
                 st.markdown(f"""
-                <div class="chinese-word">
+                <div class="chinese-word" style="position: relative;">
+                    {review_indicator}
                     <div class="pinyin">
                         {st.session_state.current_data['pinyin']}
                     </div>
@@ -1310,11 +1472,11 @@ def main():
                         
                         # Usar la lógica de selección de palabras según el modo
                         if st.session_state.random_order:
-                            word_data = db.get_random_word(st.session_state.current_category)
+                            word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
                         else:
                             # Modo secuencial
                             if not st.session_state.current_category_words:
-                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
                                 st.session_state.current_word_index = 0
                             
                             if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1356,11 +1518,11 @@ def main():
                             
                             # Usar la lógica de selección de palabras según el modo
                             if st.session_state.random_order:
-                                word_data = db.get_random_word(st.session_state.current_category)
+                                word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
                             else:
                                 # Modo secuencial (código existente)
                                 if not st.session_state.current_category_words:
-                                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category)
+                                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
                                     st.session_state.current_word_index = 0
                                 
                                 if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1474,7 +1636,7 @@ def main():
                     else:
                         # Move to next word
                         st.session_state.words_studied += 1
-                        word_data = db.get_random_word(st.session_state.current_category)
+                        word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
                         if word_data:
                             st.session_state.word_history.append(word_data)
                             st.session_state.history_index = len(st.session_state.word_history) - 1
@@ -1484,7 +1646,7 @@ def main():
                             st.session_state.phase_start_time = time.time()
                             st.rerun()
         else:
-            # STANDARD FLASHCARD MODE
+            # STANDARD FLASHCARD MODE - COPIA EXACTA DEL DISEÑO DE MODO APRENDIZAJE
             # Mostrar indicador de fase
             phase_info = {
                 1: {"text": "🎯 Fase 1: Identifica la palabra", "class": "phase-1"},
@@ -1500,49 +1662,68 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
             
-            # Mostrar contenido según la fase
-            if st.session_state.phase >= 1:
-                # Fase 1: Mostrar palabra china
+            # Verificar si la palabra está marcada para repaso
+            is_marked = False
+            if st.session_state.current_data:
+                is_marked = db.get_word_review_status(
+                    st.session_state.current_data['chinese'], 
+                    st.session_state.current_data['pinyin']
+                )
+            
+            # MOSTRAR CONTENIDO SEGÚN LA FASE - USANDO LA MISMA ESTRUCTURA QUE MODO APRENDIZAJE
+            if st.session_state.phase == 1:
+                # Fase 1: Solo palabra china (estructura simplificada)
                 st.markdown(f"""
                 <div class="chinese-word">
                     {st.session_state.current_word}
                 </div>
                 """, unsafe_allow_html=True)
-            
-            if st.session_state.phase >= 2:
-                # Fase 2: Mostrar pinyin y traducción
-                st.markdown(f"""
-                <div class="pinyin-translation">
-                    <div style="font-size: 1.2em; margin-bottom: 10px;">
-                        📝 {st.session_state.current_data['pinyin']}
-                    </div>
-                    <div style="font-size: 1em;">
-                        🇪🇸 {st.session_state.current_data['spanish']}
-                    </div>
-                    <div style="font-size: 0.8em; margin-top: 10px; opacity: 0.8;">
-                        📂 {st.session_state.current_data['category']}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            if st.session_state.phase >= 3:
-                # Fase 3: Mostrar audio automático
-                st.markdown("""
-                <div class="audio-playing">
-                    🔊 ¡Escucha la pronunciación!
-                </div>
-                """, unsafe_allow_html=True)
                 
-                # Reproducir audio automáticamente
+            elif st.session_state.phase >= 2:
+                # Fase 2 y 3: Estructura EXACTA del modo aprendizaje
+                if is_marked:
+                    # Con indicador de repaso
+                    st.markdown(f"""
+                    <div class="chinese-word" style="position: relative;">
+                        <div style="position: absolute; top: 10px; right: 10px; 
+                                    background: #e74c3c; color: white; padding: 5px 10px; 
+                                    border-radius: 15px; font-size: 0.14em;">
+                            🔄 Para Repasar
+                        </div>
+                        <div class="pinyin">
+                            {st.session_state.current_data['pinyin']}
+                        </div>
+                        {st.session_state.current_word}
+                        <div class="translation">
+                            {st.session_state.current_data['spanish']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    # Sin indicador de repaso - ESTRUCTURA EXACTA DEL MODO APRENDIZAJE
+                    st.markdown(f"""
+                    <div class="chinese-word">
+                        <div class="pinyin">
+                            {st.session_state.current_data['pinyin']}
+                        </div>
+                        {st.session_state.current_word}
+                        <div class="translation">
+                            {st.session_state.current_data['spanish']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            # Audio según la fase
+            if st.session_state.phase >= 3:
+                # Fase 3: Audio automático
                 audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
                 st.components.v1.html(audio_html, height=100)
-            
-            # Botón de audio manual disponible desde la fase 2
-            if st.session_state.phase >= 2 and st.session_state.phase < 3:
+            elif st.session_state.phase >= 2:
+                # Fase 2: Botón de audio manual
                 audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
                 st.components.v1.html(audio_html, height=100)
             
-            # Lógica de avance automático mejorada
+            # Lógica de avance automático (mantengo la existente sin cambios)
             if (st.session_state.is_playing and 
                 st.session_state.auto_advance and 
                 st.session_state.phase_start_time is not None):
@@ -1570,17 +1751,30 @@ def main():
                     if st.session_state.phase < 3:
                         st.session_state.phase += 1
                         st.session_state.phase_start_time = time.time()
+                        
+                        # Guardar el estado actual
+                        if st.session_state.current_data:
+                            db.save_last_flashcard(st.session_state.current_data, st.session_state.phase)
+                            
                     else:
                         # Completar palabra y pasar a la siguiente
                         st.session_state.words_studied += 1
                         word_data = db.get_random_word(st.session_state.current_category)
                         if word_data:
+                            # Guardar la nueva palabra en el historial
+                            st.session_state.word_history.append(word_data)
+                            st.session_state.history_index = len(st.session_state.word_history) - 1
+                            
                             st.session_state.current_word = word_data['chinese']
                             st.session_state.current_data = word_data
                             st.session_state.phase = 1
                             st.session_state.phase_start_time = time.time()
+                            
+                            # Guardar el nuevo flashcard
+                            db.save_last_flashcard(word_data, 1)
                     
                     st.rerun()
+
 
 def handle_text_analysis_mode():
     """Función para manejar el modo análisis de texto"""
