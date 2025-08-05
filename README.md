@@ -13,9 +13,9 @@ This project is designed to convert text to voice in Mandarin Chinese. It utiliz
 
 ### Example
 ```
-什么 | What?
-为什么 | Why?
-怎么办 | What to do?
+1. What? | 什么 | 你吃什么？ | What do you eat?
+2. Why? | 为什么 | 你为什么来？ | Why did you come?
+3. What to do? | 怎么办 | 我不知道怎么办 | I don't know what to do
 ```
 
 ## text-es.txt format
@@ -23,9 +23,9 @@ This project is designed to convert text to voice in Mandarin Chinese. It utiliz
 
 ### Example
 ```
-什么 | ¿Qué?
-为什么 | ¿Por qué?
-怎么办 | ¿Qué hacer?
+1. ¿Qué? | 什么 | 你吃什么？ | ¿Qué comes?
+2. ¿Por qué? | 为什么 | 你为什么来？ | ¿Por qué viniste?
+3. ¿Qué hacer? | 怎么办 | 我不知道怎么办 | No sé qué hacer
 ```
 
 ## Usage

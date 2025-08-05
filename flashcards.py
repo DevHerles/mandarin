@@ -686,6 +686,11 @@ def main():
             margin: 30px 0;
             border: 4px solid #3498db;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            .review-indicator {
+                position: absolute; top: 10px; right: 10px; 
+                background: #e74c3c; color: white; padding: 5px 10px; 
+                border-radius: 15px; font-size: 0.2em;
+            }
             .pinyin {
                 font-size: 0.3em;
                 font-family: 'Montserrat', sans-serif;
@@ -696,6 +701,10 @@ def main():
                 font-size: 0.2em;
                 font-family: 'Montserrat', sans-serif;
             }
+        }
+        .review-indicator {
+            border-right: 4px solid #e74c3c;
+            padding-right: 10px;
         }
         .pinyin-translation {
             font-size: 2em;
@@ -1308,7 +1317,7 @@ def main():
             review_indicator = """
             <div style="position: absolute; top: 10px; right: 10px; 
                         background: #e74c3c; color: white; padding: 5px 10px; 
-                        border-radius: 15px; font-size: 0.8em;">
+                        border-radius: 15px; font-size: 0.3em;">
                 🔄 Para Repasar
             </div>
             """ if is_marked else ""
@@ -1331,19 +1340,35 @@ def main():
             # Show Chinese word
             if st.session_state.writing_mode:
                 # Modo escritura: integrar stroke order viewer
-                st.markdown(f"""
-                <div class="chinese-word" style="position: relative;">
-                    {review_indicator}
-                    <div class="pinyin">
-                        {st.session_state.current_data['pinyin']}
+                if is_marked:
+                    html_content = f"""
+                    <div class="chinese-word" style="position: relative;">
+                        <div class="review-indicator">
+                            🔄
+                        </div>
+                        <div class="pinyin">
+                            {st.session_state.current_data['pinyin']}
+                        </div>
+                        {st.session_state.current_word}
+                        <div class="translation">
+                            {st.session_state.current_data['spanish']}
+                        </div>
                     </div>
-                    {st.session_state.current_word}
-                    <div class="translation">
-                        {st.session_state.current_data['spanish']}
+                    """
+                else:
+                    html_content = f"""
+                    <div class="chinese-word" style="position: relative;">
+                        <div class="pinyin">
+                            {st.session_state.current_data['pinyin']}
+                        </div>
+                        {st.session_state.current_word}
+                        <div class="translation">
+                            {st.session_state.current_data['spanish']}
+                        </div>
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """
                 
+                st.markdown(html_content, unsafe_allow_html=True)
                 # Agregar visualización de stroke order
                 with st.container():
                     st.markdown("### ✍️ Orden de Trazos")
@@ -1684,11 +1709,9 @@ def main():
                 if is_marked:
                     # Con indicador de repaso
                     st.markdown(f"""
-                    <div class="chinese-word" style="position: relative;">
-                        <div style="position: absolute; top: 10px; right: 10px; 
-                                    background: #e74c3c; color: white; padding: 5px 10px; 
-                                    border-radius: 15px; font-size: 0.14em;">
-                            🔄 Para Repasar
+                    <div class="chinese-word review-indicator" style="position: relative;">
+                        <div class="review-indicator">
+                            🔄 
                         </div>
                         <div class="pinyin">
                             {st.session_state.current_data['pinyin']}
