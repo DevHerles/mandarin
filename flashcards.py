@@ -744,8 +744,15 @@ def main():
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
     <style>
         @font-face {
-        font-family: KaiTi;
+            font-family: KaiTi;
             src: url('https://munihuayucachi.servicios.gob.pe/eeefb172-d17a-4a1e-8276-5ea006fc7770/fonts/KaiTi.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: Libertine;
+            src: url('https://munihuayucachi.servicios.gob.pe/eeefb172-d17a-4a1e-8276-5ea006fc7770/fonts/Libertine.woff2') format('woff2');
             font-weight: normal;
             font-style: normal;
             font-display: swap;
@@ -779,7 +786,7 @@ def main():
             }
             .pinyin {
                 font-size: 0.3em;
-                font-family: 'Montserrat', sans-serif;
+                font-family: Libertine, sans-serif;
                 font-weight: 500;
             }
 
@@ -893,7 +900,7 @@ def main():
                 background: #FFFFFF;
                 .pinyin {
                     font-size: 0.3em;
-                    font-family: 'Montserrat', sans-serif;
+                    font-family: Libertine, sans-serif;
                     font-weight: 500;
                 }
 
@@ -901,7 +908,6 @@ def main():
                     font-size: 0.3em;
                     font-family: 'Montserrat', sans-serif;
                 }
-                
             }
             .pinyin-translation {
                 font-size: 1.0em;
@@ -922,7 +928,7 @@ def main():
 
             .chinese-word .pinyin {
                 font-size: 0.35em;
-                font-family: 'Montserrat', sans-serif;
+                font-family: Libertine, sans-serif;
                 font-weight: 500;
             }
 
