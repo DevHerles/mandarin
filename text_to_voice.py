@@ -81,26 +81,53 @@ async def main():
     
     for line in lines:
         parts = line.strip().split("|")
-        if len(parts) == 2:
-            texto_mandarin = parts[0].strip()
-            texto_target = parts[1].strip()
+        if len(parts) >= 2:
+            texto_target = parts[0].strip()    # Inglés/Español (primera columna)
+            texto_mandarin = parts[1].strip()  # Palabra china (segunda columna)
             
-            # Generate Mandarin audio
-            await generar_audio_mandarin(texto_mandarin, archivo_mandarin)
+            # Check if there's a third column (example in Chinese)
+            has_example = len(parts) >= 3 and parts[2].strip()
+            texto_ejemplo = parts[2].strip() if has_example else None
             
-            # Generate target language audio
+            # Check if there's a fourth column (example translation)
+            has_translation = len(parts) >= 4 and parts[3].strip()
+            texto_traduccion = parts[3].strip() if has_translation else None
+            
+            # Generate target language audio (English/Spanish)
             await generar_audio_idioma(texto_target, archivo_target, target_language)
             
+            # Generate Mandarin audio for the word
+            await generar_audio_mandarin(texto_mandarin, archivo_mandarin)
+            
             language_name = "inglés" if target_language == "en" else "español"
-            print(f"✔ Audio creado (mandarín): '{texto_mandarin}' → {archivo_mandarin}")
             print(f"✔ Audio creado ({language_name}): '{texto_target}' → {archivo_target}")
+            print(f"✔ Audio creado (mandarín): '{texto_mandarin}' → {archivo_mandarin}")
             
             # Load the generated audios
-            audio_mandarin = AudioSegment.from_mp3(archivo_mandarin)
             audio_target = AudioSegment.from_mp3(archivo_target)
+            audio_mandarin = AudioSegment.from_mp3(archivo_mandarin)
             
-            # Append to the final audio with a 1.5-second pause between target language and Mandarin
-            final_audio += audio_target + AudioSegment.silent(duration=1500) + audio_mandarin + AudioSegment.silent(duration=1500) + audio_mandarin + AudioSegment.silent(duration=2000)
+            # Build the audio sequence: Target language (once) → Mandarin word (twice) → Example (if exists) → Translation (if exists)
+            sequence = audio_target + AudioSegment.silent(duration=1500) + audio_mandarin + AudioSegment.silent(duration=1500) + audio_mandarin
+            
+            # Add example if it exists
+            if has_example:
+                archivo_ejemplo = "output_ejemplo.mp3"
+                await generar_audio_mandarin(texto_ejemplo, archivo_ejemplo)
+                audio_ejemplo = AudioSegment.from_mp3(archivo_ejemplo)
+                sequence += AudioSegment.silent(duration=1500) + audio_ejemplo
+                print(f"✔ Audio creado (ejemplo): '{texto_ejemplo}' → {archivo_ejemplo}")
+                
+                # Add translation of example if it exists
+                if has_translation:
+                    archivo_traduccion = f"output_traduccion_{target_language}.mp3"
+                    await generar_audio_idioma(texto_traduccion, archivo_traduccion, target_language)
+                    audio_traduccion = AudioSegment.from_mp3(archivo_traduccion)
+                    sequence += AudioSegment.silent(duration=1500) + audio_traduccion
+                    print(f"✔ Audio creado (traducción): '{texto_traduccion}' → {archivo_traduccion}")
+            
+            # Add to final audio with longer pause between entries
+            final_audio += sequence + AudioSegment.silent(duration=2500)
 
     # Save the final audio with pauses
     final_audio.export(f"final_output_{input_file}.mp3", format="mp3")
