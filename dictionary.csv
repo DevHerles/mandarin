@@ -1,441 +1,257 @@
-chinese,pinyin,spanish,category
-你好,nǐ hǎo,Hola,Saludos
-再见,zài jiàn,Adiós,Saludos
-谢谢,xiè xie,Gracias,Saludos
-不客气,bú kè qi,De nada,Saludos
-早上好,zǎo shang hǎo,Buenos días,Saludos
-晚上好,wǎn shang hǎo,Buenas noches,Saludos
-一,yī,Uno,Números
-二,èr,Dos,Números
-三,sān,Tres,Números
-四,sì,Cuatro,Números
-五,wǔ,Cinco,Números
-六,liù,Seis,Números
-七,qī,Siete,Números
-八,bā,Ocho,Números
-九,jiǔ,Nueve,Números
-十,shí,Diez,Números
-红,hóng,Rojo,Colores
-蓝,lán,Azul,Colores
-黄,huáng,Amarillo,Colores
-绿,lǜ,Verde,Colores
-黑,hēi,Negro,Colores
-白,bái,Blanco,Colores
-老师,lǎo shī,Profesor,Aula
-学生,xué sheng,Estudiante,Aula
-书,shū,Libro,Aula
-问题,wèn tí,Pregunta,Aula
-答案,dá àn,Respuesta,Aula
-请说慢一点,qǐng shuō màn yì diǎn,Hable más despacio por favor,Aula
-同事,tóng shì,Compañero de trabajo,Oficina
-会议,huì yì,Reunión,Oficina
-电脑,diàn nǎo,Computadora,Oficina
-电话,diàn huà,Teléfono,Oficina
-邮件,yóu jiàn,Correo electrónico,Oficina
-工作,gōng zuò,Trabajo,Oficina
-爸爸,bà ba,Padre,Familia
-妈妈,mā ma,Madre,Familia
-哥哥,gē ge,Hermano mayor,Familia
-姐姐,jiě jie,Hermana mayor,Familia
-弟弟,dì di,Hermano menor,Familia
-妹妹,mèi mei,Hermana menor,Familia
-水,shuǐ,Agua,Comida
-米饭,mǐ fàn,Arroz cocido,Comida
-面包,miàn bāo,Pan,Comida
-苹果,píng guǒ,Manzana,Comida
-茶,chá,Té,Comida
-咖啡,kā fēi,Café,Comida
-星期一,xīng qī yī,Lunes,Días
-星期二,xīng qī èr,Martes,Días
-星期三,xīng qī sān,Miércoles,Días
-星期四,xīng qī sì,Jueves,Días
-星期五,xīng qī wǔ,Viernes,Días
-星期六,xīng qī liù,Sábado,Días
-星期日,xīng qī rì,Domingo,Días
-热,rè,Calor,Tiempo
-冷,lěng,Frío,Tiempo
-雨,yǔ,Lluvia,Tiempo
-太阳,tài yang,Sol,Tiempo
-风,fēng,Viento,Tiempo
-狗,gǒu,Perro,Animales
-猫,māo,Gato,Animales
-鸟,niǎo,Pájaro,Animales
-鱼,yú,Pez,Animales
-头,tóu,Cabeza,Partes del cuerpo
-眼睛,yǎn jing,Ojos,Partes del cuerpo
-手,shǒu,Mano,Partes del cuerpo
-脚,jiǎo,Pie,Partes del cuerpo
-衬衫,chèn shān,Camisa,Ropa
-裤子,kù zi,Pantalones,Ropa
-鞋子,xié zi,Zapatos,Ropa
-帽子,mào zi,Sombrero,Ropa
-公共汽车,gōng gòng qì chē,Autobús,Transporte
-地铁,dì tiě,Metro,Transporte
-出租车,chū zū chē,Taxi,Transporte
-自行车,zì xíng chē,Bicicleta,Transporte
-飞机,fēi jī,Avion,Transporte
-医院,yī yuàn,Hospital,Lugares
-学校,xué xiào,Escuela,Lugares
-公园,gōng yuán,Parque,Lugares
-商店,shāng diàn,Tienda,Lugares
-银行,yín háng,Banco,Lugares
-是,shì,Ser (es/soy),Verbos
-有,yǒu,Tener,Verbos
-做,zuò,Hacer,Verbos
-去,qù,Ir,Verbos
-说,shuō,Hablar,Verbos
-大,dà,Grande,Adjetivos
-小,xiǎo,Pequeño,Adjetivos
-好,hǎo,Bueno,Adjetivos
-坏,huài,Malo,Adjetivos
-高兴,gāo xìng,Contento,Adjetivos
-她自己做饭,tā zìjǐ zuò fàn,Ella misma cocina,Ejemplos reflexivos
-她自己去医院,tā zìjǐ qù yīyuàn,Ella misma fue al hospital,Ejemplos reflexivos
-她自己付钱,tā zìjǐ fù qián,Ella misma pagó,Ejemplos reflexivos
-她自己选择了这个工作,tā zìjǐ xuǎnzé le zhè gè gōngzuò,Ella misma eligió este trabajo,Ejemplos reflexivos
-她相信自己,tā xiāngxìn zìjǐ,Ella cree en sí misma,Ejemplos reflexivos
-她自己学习中文,tā zìjǐ xuéxí zhōngwén,Ella misma estudia chino,Ejemplos reflexivos
-她自己解决问题,tā zìjǐ jiějué wèntí,Ella misma resuelve problemas,Ejemplos reflexivos
-她自己决定了,tā zìjǐ juédìng le,Ella misma lo decidió,Ejemplos reflexivos
-她自己照顾孩子,tā zìjǐ zhàogù háizi,Ella misma cuida a los niños,Ejemplos reflexivos
-我自己做,wǒ zìjǐ zuò,Yo mismo hago,Ejemplos reflexivos
-你自己试试,nǐ zìjǐ shì shi,Prueba tú mismo,Ejemplos reflexivos
-他自己去,tā zìjǐ qù,Él mismo va,Ejemplos reflexivos
-我们自己学习,wǒmen zìjǐ xuéxí,Nosotros mismos estudiamos,Ejemplos reflexivos
-你们自己决定,nǐmen zìjǐ juédìng,Vosotros mismos decidís,Ejemplos reflexivos
-他们自己付钱,tāmen zìjǐ fù qián,Ellos mismos pagan,Ejemplos reflexivos
-她做饭,tā zuò fàn,Ella cocina,Vida diaria
-他上班,tā shàng bān,Él va al trabajo,Vida diaria
-我学习,wǒ xué xí,Yo estudio,Vida diaria
-你喝茶,nǐ hē chá,Tú bebes té,Vida diaria
-我们看电影,wǒ men kàn diàn yǐng,Nosotros vemos películas,Vida diaria
-你们聊天,nǐ men liáo tiān,Vosotros charláis,Vida diaria
-他们工作,tā men gōng zuò,Ellos trabajan,Vida diaria
-她买衣服,tā mǎi yī fu,Ella compra ropa,Vida diaria
-我打电话,wǒ dǎ diàn huà,Yo llamo por teléfono,Vida diaria
-他开车,tā kāi chē,Él conduce,Vida diaria
-你写邮件,nǐ xiě yóu jiàn,Tú escribes un correo,Vida diaria
-她唱歌,tā chàng gē,Ella canta,Vida diaria
-我们吃饭,wǒ men chī fàn,Nosotros comemos,Vida diaria
-他们跑步,tā men pǎo bù,Ellos corren,Vida diaria
-她看电视,tā kàn diàn shì,Ella ve televisión,Vida diaria
-我读书,wǒ dú shū,Yo leo un libro,Vida diaria
-你做饭,nǐ zuò fàn,Tú cocinas,Vida diaria
-他洗澡,tā xǐ zǎo,Él se baña,Vida diaria
-她睡觉,tā shuì jiào,Ella duerme,Vida diaria
-我们旅行,wǒ men lǚ xíng,Nosotros viajamos,Vida diaria
-我想吃,wǒ xiǎng chī,Yo quiero comer,Pronombre + verbo
-我饿了,wǒ è le,Yo tengo hambre,Pronombre + verbo
-你要喝,nǐ yào hē,Tú quieres beber,Pronombre + verbo
-他喜欢,tā xǐ huān,A él le gusta,Pronombre + verbo
-她需要,tā xū yào,Ella necesita,Pronombre + verbo
-我们学习,wǒ men xué xí,Nosotros estudiamos,Pronombre + verbo
-你们工作,nǐ men gōng zuò,Vosotros trabajáis,Pronombre + verbo
-他们去,tā men qù,Ellos van,Pronombre + verbo
-我可以,wǒ kě yǐ,Yo puedo (verbo auxiliar),Pronombre + verbo
-你应该,nǐ yīng gāi,Tú deberías (verbo auxiliar),Pronombre + verbo
-我们必须,wǒ men bì xū,Nosotros debemos (verbo auxiliar),Pronombre + verbo
-我会说,wǒ huì shuō,Yo sé hablar (verbo auxiliar),Pronombre + verbo
-你要去吗？,nǐ yào qù ma?,¿Tú quieres ir?,Pronombre + verbo
-我能帮忙,wǒ néng bāng máng,Yo puedo ayudar (verbo auxiliar),Pronombre + verbo
-她在睡觉,tā zài shuì jiào,Ella está durmiendo (verbo progresivo),Pronombre + verbo
-我们在吃饭,wǒ men zài chī fàn,Nosotros estamos comiendo (verbo progresivo),Pronombre + verbo
-你要买什么？,nǐ yào mǎi shén me?,¿Qué quieres comprar?,Pronombre + verbo
-他们想旅行,tā men xiǎng lǚ xíng,Ellos quieren viajar,Pronombre + verbo
-我爱中国,wǒ ài zhōng guó,Yo amo China,Pronombre + verbo
-你明白吗？,nǐ míng bai ma?,¿Tú entiendes?,Pronombre + verbo
-我是学生,wǒ shì xué sheng,Yo soy estudiante,Pronombres
-你叫什么名字？,nǐ jiào shén me míng zi?,¿Cómo te llamas tú?,Pronombres
-他是医生,tā shì yī shēng,Él es médico,Pronombres
-她来自西班牙,tā lái zì xī bān yá,Ella es de España,Pronombres
-它很可爱,tā hěn kě ài,Es (animal/objeto) muy lindo,Pronombres
-我们学习中文,wǒ men xué xí zhōng wén,Nosotros estudiamos chino,Pronombres
-你们好吗？,nǐ men hǎo ma?,¿Cómo estáis vosotros?,Pronombres
-他们去公园,tā men qù gōng yuán,Ellos van al parque,Pronombres
-这是什么？,zhè shì shén me?,¿Qué es esto? (demostrativo),Pronombres
-那是什么？,nà shì shén me?,¿Qué es eso? (demostrativo),Pronombres
-这些是苹果,zhè xiē shì píng guǒ,Estas son manzanas (demostrativo),Pronombres
-那些是椅子,nà xiē shì yǐ zi,Aquellas son sillas (demostrativo),Pronombres
-谁是你的老师？,shéi shì nǐ de lǎo shī?,¿Quién es tu profesor?,Pronombres
-哪里可以买水？,nǎ lǐ kě yǐ mǎi shuǐ?,¿Dónde se puede comprar agua?,Pronombres
-什么时候上课？,shén me shí hou shàng kè?,¿Cuándo es la clase?,Pronombres
-为什么学习中文？,wèi shén me xué xí zhōng wén?,¿Por qué estudiar chino?,Pronombres
-怎么去银行？,zěn me qù yín háng?,¿Cómo ir al banco?,Pronombres
-多少钱？,duō shǎo qián?,¿Cuánto cuesta?,Pronombres
-几个人？,jǐ gè rén?,¿Cuántas personas?,Pronombres
-我自己做饭,wǒ zì jǐ zuò fàn,Yo mismo cocino (reflexivo),Pronombres
-你自己试试,nǐ zì jǐ shì shi,Prueba tú mismo (reflexivo),Pronombres
-我,wǒ,Yo,Pronombres personales
-你,nǐ,Tú,Pronombres personales
-您,nín,Usted (formal),Pronombres personales
-他,tā,Él,Pronombres personales
-她,tā,Ella,Pronombres personales
-它,tā,Ello (para objetos/animales),Pronombres personales
-我们,wǒ men,Nosotros/Nosotras,Pronombres personales
-你们,nǐ men,Vosotros/Vosotras,Pronombres personales
-他们,tā men,Ellos,Pronombres personales
-她们,tā men,Ellas,Pronombres personales
-它们,tā men,Ellos/Ellas (para objetos/animales),Pronombres personales
-自己,zì jǐ,Mismo/a (reflexivo),Pronombres personales
-这,zhè,Este/Esta (cercano),Pronombres demostrativos
-那,nà,Ese/Esa/Aquel/Aquella (lejano),Pronombres demostrativos
-这些,zhè xiē,Estos/Estas,Pronombres demostrativos
-那些,nà xiē,Esos/Esas/Aquellos/Aquellas,Pronombres demostrativos
-这里,zhè lǐ,Aquí,Pronombres demostrativos
-那里,nà lǐ,Allí,Pronombres demostrativos
-谁,shéi,Quién/Quiénes,Pronombres interrogativos
-什么,shén me,Qué,Pronombres interrogativos
-哪,nǎ,Cuál/Cuáles,Pronombres interrogativos
-哪里,nǎ lǐ,Dónde,Pronombres interrogativos
-什么时候,shén me shí hou,Cuándo,Pronombres interrogativos
-为什么,wèi shén me,Por qué,Pronombres interrogativos
-怎么,zěn me,Cómo,Pronombres interrogativos
-多少,duō shao,Cuánto/a (cantidad),Pronombres interrogativos
-几,jǐ,Cuántos/as (número pequeño),Pronombres interrogativos
-我的,wǒ de,Mi/mis,Pronombres posesivos
-你的,nǐ de,Tu/tus,Pronombres posesivos
-您的,nín de,Su/sus (formal),Pronombres posesivos
-他的,tā de,Su/sus (de él),Pronombres posesivos
-她的,tā de,Su/sus (de ella),Pronombres posesivos
-它的,tā de,Su/sus (de objeto/animal),Pronombres posesivos
-我们的,wǒ men de,Nuestro/a/os/as,Pronombres posesivos
-你们的,nǐ men de,Vuestro/a/os/as,Pronombres posesivos
-他们的,tā men de,Su/sus (de ellos),Pronombres posesivos
-她们的,tā men de,Su/sus (de ellas),Pronombres posesivos
-它们的,tā men de,Su/sus (de objetos/animales),Pronombres posesivos
-自己的,zì jǐ de,Propio/a (posesivo reflexivo),Pronombres posesivos
-别人的,bié ren de,De otra persona,Pronombres posesivos
-大家的,dà jiā de,De todos (colectivo),Pronombres posesivos
-谁的,shéi de,De quién,Pronombres interrogativos posesivos
-这个的,zhè ge de,De este,Pronombres demostrativos posesivos
-那个的,nà ge de,De ese,Pronombres demostrativos posesivos
-这些的,zhè xiē de,De estos,Pronombres demostrativos posesivos
-那些的,nà xiē de,De esos,Pronombres demostrativos posesivos
-这是我的书,zhè shì wǒ de shū,Este es mi libro,Ejemplos Pronombres posesivos
-那是你的笔吗？,nà shì nǐ de bǐ ma?,¿Esa es tu pluma?,Ejemplos Pronombres posesivos
-他的手机很新,tā de shǒu jī hěn xīn,Su teléfono (de él) es muy nuevo,Ejemplos Pronombres posesivos
-我们的老师很好,wǒ men de lǎo shī hěn hǎo,Nuestra profesora es muy buena,Ejemplos Pronombres posesivos
-这是谁的书包？,zhè shì shéi de shū bāo?,¿De quién es esta mochila?,Ejemplos Pronombres interrogativos
-我的车是蓝色的,wǒ de chē shì lán sè de,Mi coche es azul,Ejemplos Pronombres posesivos
-你喜欢你的工作吗？,nǐ xǐ huān nǐ de gōng zuò ma?,¿Te gusta tu trabajo?,Ejemplos Pronombres posesivos
-他们的家很大,tā men de jiā hěn dà,Su casa (de ellos) es muy grande,Ejemplos Pronombres posesivos
-这是我的，那是你的,zhè shì wǒ de_ nà shì nǐ de,Esto es mío_eso es tuyo,Ejemplos Pronombres posesivos
-她自己做的,zì jǐ zuò de,Ella lo hizo (por sí misma),Ejemplos Pronombres reflexivos
-这是我的朋友,zhè shì wǒ de péng you,Este es mi amigo,Ejemplos Pronombres posesivos
-我们有自己的问题,wǒ men yǒu zì jǐ de wèn tí,Tenemos nuestros propios problemas,Ejemplos Pronombres reflexivos
-这是谁的钥匙？,zhè shì shéi de yào shi?,¿De quién son estas llaves?,Ejemplos Pronombres interrogativos
-您的意见很重要,nín de yì jiàn hěn zhòng yào,Su opinión (formal) es muy importante,Ejemplos Pronombres posesivos
-它的颜色很漂亮,tā de yán sè hěn piào liang,Su color (de objeto/animal) es muy bonito,Ejemplos Pronombres posesivos
-这些是我们的照片,zhè xiē shì wǒ men de zhào piàn,Estas son nuestras fotos,Ejemplos Pronombres posesivos
-那是他们的车,nà shì tā men de chē,Ese es su coche (de ellos),Ejemplos Pronombres posesivos
-我自己去,wǒ zì jǐ qù,Voy yo mismo/sola,Ejemplos Pronombres reflexivos
-你们有自己的房间吗？,nǐ men yǒu zì jǐ de fáng jiān ma?,¿Tenéis vuestra propia habitación?,Ejemplos Pronombres reflexivos
-这是他的还是她的？,zhè shì tā de hái shì tā de?,¿Esto es de él o de ella?,Ejemplos Pronombres posesivos
-我是学生,wǒ shì xué sheng,Yo soy estudiante,Ejemplos Pronombres
-你叫什么名字？,nǐ jiào shén me míng zi?,¿Cómo te llamas tú?,Ejemplos Pronombres
-他是医生,tā shì yī shēng,Él es médico,Ejemplos Pronombres
-她来自西班牙,tā lái zì xī bān yá,Ella es de España,Ejemplos Pronombres
-它很可爱,tā hěn kě ài,Es (animal/objeto) muy lindo,Ejemplos Pronombres
-我们学习中文,wǒ men xué xí zhōng wén,Nosotros estudiamos chino,Ejemplos Pronombres
-你们好吗？,nǐ men hǎo ma?,¿Cómo estáis vosotros?,Ejemplos Pronombres
-他们去公园,tā men qù gōng yuán,Ellos van al parque,Ejemplos Pronombres
-这是什么？,zhè shì shén me?,¿Qué es esto?,Ejemplos Pronombres demostrativos
-那是什么？,nà shì shén me?,¿Qué es eso?,Ejemplos Pronombres demostrativos
-这些是苹果,zhè xiē shì píng guǒ,Estas son manzanas,Ejemplos Pronombres demostrativos
-那些是椅子,nà xiē shì yǐ zi,Aquellas son sillas,Ejemplos Pronombres demostrativos
-谁是你的老师？,shéi shì nǐ de lǎo shī?,¿Quién es tu profesor?,Ejemplos Pronombres interrogativos
-哪里可以买水？,nǎ lǐ kě yǐ mǎi shuǐ?,¿Dónde se puede comprar agua?,Ejemplos Pronombres interrogativos
-什么时候上课？,shén me shí hou shàng kè?,¿Cuándo es la clase?,Ejemplos Pronombres interrogativos
-为什么学习中文？,wèi shén me xué xí zhōng wén?,¿Por qué estudiar chino?,Ejemplos Pronombres interrogativos
-怎么去银行？,zěn me qù yín háng?,¿Cómo ir al banco?,Ejemplos Pronombres interrogativos
-多少钱？,duō shǎo qián?,¿Cuánto cuesta?,Ejemplos Pronombres interrogativos
-几个人？,jǐ gè rén?,¿Cuántas personas?,Ejemplos Pronombres interrogativos
-我自己做饭,wǒ zì jǐ zuò fàn,Yo mismo cocino,Ejemplos Pronombres reflexivos
-你自己试试,nǐ zì jǐ shì shi,Prueba tú mismo,Ejemplos Pronombres reflexivos
-我想吃,wǒ xiǎng chī,Yo quiero comer,Pronombre + verbo
-我饿了,wǒ è le,Yo tengo hambre,Pronombre + verbo
-你要喝,nǐ yào hē,Tú quieres beber,Pronombre + verbo
-他喜欢,tā xǐ huān,A él le gusta,Pronombre + verbo
-她需要,tā xū yào,Ella necesita,Pronombre + verbo
-我们学习,wǒ men xué xí,Nosotros estudiamos,Pronombre + verbo
-你们工作,nǐ men gōng zuò,Vosotros trabajáis,Pronombre + verbo
-他们去,tā men qù,Ellos van,Pronombre + verbo
-我可以,wǒ kě yǐ,Yo puedo (verbo auxiliar),Pronombre + verbo
-你应该,nǐ yīng gāi,Tú deberías (verbo auxiliar),Pronombre + verbo
-我们必须,wǒ men bì xū,Nosotros debemos (verbo auxiliar),Pronombre + verbo
-我会说,wǒ huì shuō,Yo sé hablar (verbo auxiliar),Pronombre + verbo
-你要去吗？,nǐ yào qù ma?,¿Tú quieres ir?,Pronombre + verbo
-我能帮忙,wǒ néng bāng máng,Yo puedo ayudar (verbo auxiliar),Pronombre + verbo
-她在睡觉,tā zài shuì jiào,Ella está durmiendo,Pronombre + verbo progresivo
-我们在吃饭,wǒ men zài chī fàn,Nosotros estamos comiendo,Pronombre + verbo progresivo
-你要买什么？,nǐ yào mǎi shén me?,¿Qué quieres comprar?,Pronombre + verbo
-他们想旅行,tā men xiǎng lǚ xíng,Ellos quieren viajar,Pronombre + verbo
-我爱中国,wǒ ài zhōng guó,Yo amo China,Pronombre + verbo
-你明白吗？,nǐ míng bai ma?,¿Tú entiendes?,Pronombre + verbo
-零,líng,cero,Números
-一,yī,uno,Números
-二,èr,dos,Números
-三,sān,tres,Números
-四,sì,cuatro,Números
-五,wǔ,cinco,Números
-六,liù,seis,Números
-七,qī,siete,Números
-八,bā,ocho,Números
-九,jiǔ,nueve,Números
-十,shí,diez,Números
-十一,shí yī,once,Números
-十二,shí èr,doce,Números
-十三,shí sān,trece,Números
-十四,shí sì,catorce,Números
-十五,shí wǔ,quince,Números
-十六,shí liù,dieciséis,Números
-十七,shí qī,diecisiete,Números
-十八,shí bā,dieciocho,Números
-十九,shí jiǔ,diecinueve,Números
-二十,èr shí,veinte,Números
-二十一,èr shí yī,veintiuno,Números
-二十二,èr shí èr,veintidós,Números
-二十三,èr shí sān,veintitrés,Números
-二十四,èr shí sì,veinticuatro,Números
-二十五,èr shí wǔ,veinticinco,Números
-二十六,èr shí liù,veintiséis,Números
-二十七,èr shí qī,veintisiete,Números
-二十八,èr shí bā,veintiocho,Números
-二十九,èr shí jiǔ,veintinueve,Números
-三十,sān shí,treinta,Números
-三十一,sān shí yī,treinta y uno,Números
-三十二,sān shí èr,treinta y dos,Números
-三十三,sān shí sān,treinta y tres,Números
-三十四,sān shí sì,treinta y cuatro,Números
-三十五,sān shí wǔ,treinta y cinco,Números
-三十六,sān shí liù,treinta y seis,Números
-三十七,sān shí qī,treinta y siete,Números
-三十八,sān shí bā,treinta y ocho,Números
-三十九,sān shí jiǔ,treinta y nueve,Números
-四十,sì shí,cuarenta,Números
-四十一,sì shí yī,cuarenta y uno,Números
-四十二,sì shí èr,cuarenta y dos,Números
-四十三,sì shí sān,cuarenta y tres,Números
-四十四,sì shí sì,cuarenta y cuatro,Números
-四十五,sì shí wǔ,cuarenta y cinco,Números
-四十六,sì shí liù,cuarenta y seis,Números
-四十七,sì shí qī,cuarenta y siete,Números
-四十八,sì shí bā,cuarenta y ocho,Números
-四十九,sì shí jiǔ,cuarenta y nueve,Números
-五十,wǔ shí,cincuenta,Números
-五十一,wǔ shí yī,cincuenta y uno,Números
-五十二,wǔ shí èr,cincuenta y dos,Números
-五十三,wǔ shí sān,cincuenta y tres,Números
-五十四,wǔ shí sì,cincuenta y cuatro,Números
-五十五,wǔ shí wǔ,cincuenta y cinco,Números
-五十六,wǔ shí liù,cincuenta y seis,Números
-五十七,wǔ shí qī,cincuenta y siete,Números
-五十八,wǔ shí bā,cincuenta y ocho,Números
-五十九,wǔ shí jiǔ,cincuenta y nueve,Números
-六十,liù shí,sesenta,Números
-六十一,liù shí yī,sesenta y uno,Números
-六十二,liù shí èr,sesenta y dos,Números
-六十三,liù shí sān,sesenta y tres,Números
-六十四,liù shí sì,sesenta y cuatro,Números
-六十五,liù shí wǔ,sesenta y cinco,Números
-六十六,liù shí liù,sesenta y seis,Números
-六十七,liù shí qī,sesenta y siete,Números
-六十八,liù shí bā,sesenta y ocho,Números
-六十九,liù shí jiǔ,sesenta y nueve,Números
-七十,qī shí,setenta,Números
-七十一,qī shí yī,setenta y uno,Números
-七十二,qī shí èr,setenta y dos,Números
-七十三,qī shí sān,setenta y tres,Números
-七十四,qī shí sì,setenta y cuatro,Números
-七十五,qī shí wǔ,setenta y cinco,Números
-七十六,qī shí liù,setenta y seis,Números
-七十七,qī shí qī,setenta y siete,Números
-七十八,qī shí bā,setenta y ocho,Números
-七十九,qī shí jiǔ,setenta y nueve,Números
-八十,bā shí,ochenta,Números
-八十一,bā shí yī,ochenta y uno,Números
-八十二,bā shí èr,ochenta y dos,Números
-八十三,bā shí sān,ochenta y tres,Números
-八十四,bā shí sì,ochenta y cuatro,Números
-八十五,bā shí wǔ,ochenta y cinco,Números
-八十六,bā shí liù,ochenta y seis,Números
-八十七,bā shí qī,ochenta y siete,Números
-八十八,bā shí bā,ochenta y ocho,Números
-八十九,bā shí jiǔ,ochenta y nueve,Números
-九十,jiǔ shí,noventa,Números
-九十一,jiǔ shí yī,noventa y uno,Números
-九十二,jiǔ shí èr,noventa y dos,Números
-九十三,jiǔ shí sān,noventa y tres,Números
-九十四,jiǔ shí sì,noventa y cuatro,Números
-九十五,jiǔ shí wǔ,noventa y cinco,Números
-九十六,jiǔ shí liù,noventa y seis,Números
-九十七,jiǔ shí qī,noventa y siete,Números
-九十八,jiǔ shí bā,noventa y ocho,Números
-九十九,jiǔ shí jiǔ,noventa y nueve,Números
-一百,yī bǎi,cien,Números
-马大为, Mǎ Dàwéi, Ma Dawei (nombre de persona),Session 6   
-请问, qǐngwèn, por favor (preguntar),Session 6
-什么, shénme, qué,Session 6
-名字, míngzi, nombre,Session 6
-姓, xìng, apellido,Session 6
-宋华, Sòng Huá, Song Hua (nombre de persona),Session 6
-认识, rènshi, conocer (a alguien),Session 6
-高兴, gāoxìng, contento/feliz,Session 6
-对不起, duìbuqǐ, lo siento/disculpa,Session 6
-不好意思, bù hǎoyìsi, disculpa (informal)/vergüenza,Session 6
-在, zài, estar (en un lugar),Session 6
-马大为是我的朋友。,Mǎ Dàwéi shì wǒ de péngyou.,Ma Dawei es mi amigo.,Session 6  
-马大为在哪里？,Mǎ Dàwéi zài nǎlǐ?,¿Dónde está Ma Dawei?,Session 6  
-马大为学习中文。,Mǎ Dàwéi xuéxí Zhōngwén.,Ma Dawei estudia chino.,Session 6  
-这是马大为的书。,Zhè shì Mǎ Dàwéi de shū.,Este es el libro de Ma Dawei.,Session 6  
-马大为喜欢咖啡。,Mǎ Dàwéi xǐhuān kāfēi.,A Ma Dawei le gusta el café.,Session 6  
-请问，你叫什么名字？,Qǐngwèn、 nǐ jiào shénme míngzi?,Por favor、 ¿cómo te llamas?,Session 6  
-请问，厕所在哪里？,Qǐngwèn、 cèsuǒ zài nǎlǐ?,Por favor、 ¿dónde está el baño?,Session 6  
-请问，现在几点？,Qǐngwèn、 xiànzài jǐ diǎn?,Por favor、 ¿qué hora es?,Session 6  
-请问，这个多少钱？,Qǐngwèn、 zhège duōshǎo qián?,Por favor、 ¿cuánto cuesta esto?,Session 6  
-请问，你会说英语吗？,Qǐngwèn、 nǐ huì shuō Yīngyǔ ma?,Por favor、 ¿hablas inglés?,Session 6  
-你在做什么？,Nǐ zài zuò shénme?,¿Qué estás haciendo?,Session 6  
-这是什么？,Zhè shì shénme?,¿Qué es esto?,Session 6  
-你喜欢什么颜色？,Nǐ xǐhuān shénme yánsè?,¿Qué color te gusta?,Session 6  
-他叫什么名字？,Tā jiào shénme míngzi?,¿Cómo se llama él?,Session 6  
-今天吃什么？,Jīntiān chī shénme?,¿Qué comemos hoy?,Session 6  
-我的名字是安娜。,Wǒ de míngzi shì Ānnà.,Mi nombre es Ana.,Session 6  
-你记得他的名字吗？,Nǐ jìde tā de míngzi ma?,¿Recuerdas su nombre?,Session 6  
-请写你的名字。,Qǐng xiě nǐ de míngzi.,Por favor、 escribe tu nombre.,Session 6  
-这个名字很好听。,Zhège míngzi hěn hǎotīng.,Este nombre es muy bonito.,Session 6  
-她的名字是什么意思？,Tā de míngzi shì shénme yìsi?,¿Qué significa su nombre?,Session 6  
-你姓什么？,Nǐ xìng shénme?,¿Cuál es tu apellido?,Session 6  
-我姓王。,Wǒ xìng Wáng.,Mi apellido es Wang.,Session 6  
-他姓李。,Tā xìng Lǐ.,Su apellido es Li.,Session 6  
-中国人先说姓。,Zhōngguó rén xiān shuō xìng.,Los chinos dicen primero el apellido.,Session 6  
-你的姓很常见。,Nǐ de xìng hěn chángjiàn.,Tu apellido es muy común.,Session 6  
-宋华是我的同学。,Sòng Huá shì wǒ de tóngxué.,Song Hua es mi compañero de clase.,Session 6  
-宋华在哪里工作？,Sòng Huá zài nǎlǐ gōngzuò?,¿Dónde trabaja Song Hua?,Session 6  
-宋华会说西班牙语。,Sòng Huá huì shuō Xībānyá yǔ.,Song Hua habla español.,Session 6  
-这是宋华的手机。,Zhè shì Sòng Huá de shǒujī.,Este es el teléfono de Song Hua.,Session 6  
-宋华喜欢旅行。,Sòng Huá xǐhuān lǚxíng.,A Song Hua le gusta viajar.,Session 6  
-很高兴认识你。,Hěn gāoxìng rènshi nǐ.,Mucho gusto en conocerte.,Session 6  
-你认识他吗？,Nǐ rènshi tā ma?,¿Lo conoces?,Session 6  
-我们认识很久了。,Wǒmen rènshi hěn jiǔ le.,Nos conocemos desde hace mucho.,Session 6  
-我不认识这个地方。,Wǒ bù rènshi zhège dìfang.,No conozco este lugar.,Session 6  
-她认识很多名人。,Tā rènshi hěn duō míngrén.,Ella conoce a muchas celebridades.,Session 6  
-我很高兴。,Wǒ hěn gāoxìng.,Estoy muy contento.,Session 6  
-他高兴地笑了。,Tā gāoxìng de xiào le.,Él sonrió feliz.,Session 6  
-今天是个高兴的日子。,Jīntiān shì ge gāoxìng de rìzi.,Hoy es un día feliz.,Session 6  
-妈妈很高兴见到你。,Māma hěn gāoxìng jiàndào nǐ.,Mamá está feliz de verte.,Session 6  
-为什么你不高兴？,Wèishénme nǐ bù gāoxìng?,¿Por qué no estás contento?,Session 6  
-对不起，我迟到了。,Duìbuqǐ、 wǒ chídào le.,Lo siento、 llegué tarde.,Session 6  
-对不起，我错了。,Duìbuqǐ、 wǒ cuò le.,Lo siento、 me equivoqué.,Session 6  
-对不起，请再说一遍。,Duìbuqǐ、 qǐng zàishuō yībiàn.,Perdón、 ¿puedes repetirlo?,Session 6  
-对不起，我不能去。,Duìbuqǐ、 wǒ bù néng qù.,Lo siento、 no puedo ir.,Session 6  
-对不起，打扰你了。,Duìbuqǐ、 dǎrǎo nǐ le.,Disculpa por molestarte.,Session 6  
-不好意思，我忘了。,Bù hǎoyìsi、 wǒ wàng le.,Disculpa、 lo olvidé.,Session 6  
-不好意思，借过一下。,Bù hǎoyìsi、 jièguò yīxià.,Perdón、 déjame pasar.,Session 6  
-不好意思，我没听懂。,Bù hǎoyìsi、 wǒ méi tīngdǒng.,Disculpa、 no entendí.,Session 6  
-不好意思，这是我的错。,Bù hǎoyìsi、 zhè shì wǒ de cuò.,Lo siento、 fue mi culpa.,Session 6  
-不好意思，可以帮我吗？,Bù hǎoyìsi、 kěyǐ bāng wǒ ma?,Disculpa、 ¿me puedes ayudar?,Session 6  
-你在家吗？,Nǐ zài jiā ma?,¿Estás en casa?,Session 6  
-我在学校。,Wǒ zài xuéxiào.,Estoy en la escuela.,Session 6  
-书在桌子上。,Shū zài zhuōzi shàng.,El libro está sobre la mesa.,Session 6  
-他们在北京。,Tāmen zài Běijīng.,Ellos están en Beijing.,Session 6  
-猫在椅子下面。,Māo zài yǐzi xiàmiàn.,El gato está debajo de la silla.,Session 6  
+chinese|pinyin|spanish|category
+匕|bǐ|cuchillo|Vocabulario PUCP  
+又|yòu|de nuevo, también|Vocabulario PUCP  
+贝|bèi|concha, cauri|Vocabulario PUCP  
+玉|yù|jade|Vocabulario PUCP  
+见|jiàn|ver|Vocabulario PUCP  
+米|mǐ|arroz (crudo)|Vocabulario PUCP  
+目|mù|ojo (antiguo)|Vocabulario PUCP  
+心|xīn|corazón|Vocabulario PUCP  
+上|shàng|arriba, sobre|Vocabulario PUCP  
+云|yún|nube|Vocabulario PUCP  
+王|wáng|rey, apellido Wang|Vocabulario PUCP  
+同学|tóngxué|compañero de clase|Vocabulario PUCP  
+面包|miànbāo|pan|Vocabulario PUCP  
+汉堡包|hànbǎobāo|hamburguesa|Vocabulario PUCP  
+比萨饼|bǐsàbǐng|pizza|Vocabulario PUCP  
+中国|Zhōngguó|China|Vocabulario PUCP  
+西班牙|Xībānyá|España|Vocabulario PUCP  
+法国|Fǎguó|Francia|Vocabulario PUCP  
+德国|Déguó|Alemania|Vocabulario PUCP  
+加拿大|Jiānádà|Canadá|Vocabulario PUCP  
+英国|Yīngguó|Reino Unido|Vocabulario PUCP  
+澳大利亚|Àodàlìyà|Australia|Vocabulario PUCP  
+俄罗斯|Éluósī|Rusia|Vocabulario PUCP  
+日本|Rìběn|Japón|Vocabulario PUCP  
+韩国|Hánguó|Corea del Sur|Vocabulario PUCP  
+泰国|Tàiguó|Tailandia|Vocabulario PUCP  
+印度|Yìndù|India|Vocabulario PUCP  
+埃及|Āijí|Egipto|Vocabulario PUCP  
+点心|diǎnxīn|dim sum, bocadillo|Vocabulario PUCP  
+好吃|hǎochī|rico, sabroso|Vocabulario PUCP  
+吃|chī|comer|Vocabulario PUCP  
+爸爸|bàba|papá|Vocabulario PUCP  
+喜欢|xǐhuan|gustar|Vocabulario PUCP  
+和|hé|y (conjunción)|Vocabulario PUCP  
+米饭|mǐfàn|arroz cocido|Vocabulario PUCP  
+饭|fàn|comida|Vocabulario PUCP  
+妈妈|māma|mamá|Vocabulario PUCP  
+他|tā|él|Vocabulario PUCP  
+面条儿|miàntiáor|fideos|Vocabulario PUCP  
+饺子|jiǎozi|empanadillas chinas|Vocabulario PUCP  
+包子|bāozi|bollo al vapor|Vocabulario PUCP  
+大|dà|grande|Vocabulario PUCP  
+小|xiǎo|pequeño|Vocabulario PUCP  
+看|kàn|mirar|Vocabulario PUCP  
+那|nà|ese/a|Vocabulario PUCP  
+都|dōu|todo, ambos|Vocabulario PUCP  
+要|yào|querer, necesitar|Vocabulario PUCP  
+上海|Shànghǎi|Shanghái|Vocabulario PUCP  
+王小云|Wáng Xiǎoyún|(nombre personal)|Vocabulario PUCP  
+老师|lǎoshī|profesor/a|Vocabulario PUCP  
+早上|zǎoshang|mañana (saludo)|Vocabulario PUCP  
+早|zǎo|temprano|Vocabulario PUCP  
+你们|nǐmen|vosotros|Vocabulario PUCP  
+们|men|(sufijo plural)|Vocabulario PUCP  
+这|zhè|este/a|Vocabulario PUCP  
+是|shì|ser|Vocabulario PUCP  
+朋友|péngyou|amigo/a|Vocabulario PUCP  
+刚|gāng|recién, justo|Vocabulario PUCP  
+到|dào|llegar|Vocabulario PUCP  
+您|nín|usted (formal)|Vocabulario PUCP  
+贵姓|guìxìng|¿Cuál es su apellido?|Vocabulario PUCP  
+哪|nǎ|cuál|Vocabulario PUCP  
+国|guó|país|Vocabulario PUCP  
+人|rén|persona|Vocabulario PUCP  
+学习|xuéxí|estudiar|Vocabulario PUCP  
+学|xué|aprender|Vocabulario PUCP  
+汉语|Hànyǔ|idioma chino|Vocabulario PUCP  
+再见|zàijiàn|adiós|Vocabulario PUCP  
+陈|Chén|apellido Chen|Vocabulario PUCP  
+北京|Běijīng|Pekín|Vocabulario PUCP  
+美国|Měiguó|Estados Unidos|Vocabulario PUCP  
+力|lì|fuerza|Vocabulario PUCP  
+生|shēng|nacer, vida|Vocabulario PUCP  
+言|yán|hablar, palabra|Vocabulario PUCP  
+人|rén|persona|Vocabulario PUCP  
+木|mù|madera|Vocabulario PUCP  
+羊|yáng|oveja|Vocabulario PUCP  
+井|jǐng|pozo|Vocabulario PUCP  
+土|tǔ|tierra|Vocabulario PUCP  
+困|kùn|soñoliento|Vocabulario PUCP  
+渴|kě|sediento|Vocabulario PUCP  
+饿|è|hambriento|Vocabulario PUCP  
+累|lèi|cansado|Vocabulario PUCP  
+还行|háixíng|no está mal|Vocabulario PUCP  
+马马虎虎|mǎmǎhūhū|más o menos|Vocabulario PUCP  
+她|tā|ella|Vocabulario PUCP  
+在|zài|estar (en un lugar)|Vocabulario PUCP  
+吗|ma|(partícula interrogativa)|Vocabulario PUCP  
+进|jìn|entrar|Vocabulario PUCP  
+坐|zuò|sentarse|Vocabulario PUCP  
+谢谢|xièxie|gracias|Vocabulario PUCP  
+最近|zuìjìn|últimamente|Vocabulario PUCP  
+怎么样|zěnmeyang|¿cómo está?|Vocabulario PUCP  
+呢|ne|(partícula interrogativa)|Vocabulario PUCP  
+忙|máng|ocupado|Vocabulario PUCP  
+不|bù|no|Vocabulario PUCP  
+他|tā|él|Vocabulario PUCP  
+丁力波|Dīng Lìbō|(nombre personal)|Vocabulario PUCP  
+林哪|Lín Nǎ|(nombre personal)|Vocabulario PUCP  
+你|nǐ|tú|Vocabulario PUCP  
+好|hǎo|hola, bueno|Vocabulario PUCP  
+我|wǒ|yo|Vocabulario PUCP  
+叫|jiào|llamarse|Vocabulario PUCP  
+请问|qǐngwèn|por favor, preguntar|Vocabulario PUCP  
+请|qǐng|por favor|Vocabulario PUCP  
+问|wèn|preguntar|Vocabulario PUCP  
+什么|shénme|qué|Vocabulario PUCP  
+名字|míngzi|nombre|Vocabulario PUCP  
+姓|xìng|apellido|Vocabulario PUCP  
+认识|rènshi|conocer|Vocabulario PUCP  
+很|hěn|muy|Vocabulario PUCP  
+高兴|gāoxìng|contento|Vocabulario PUCP  
+也|yě|también|Vocabulario PUCP  
+马大为|Mǎ Dàwéi|(nombre personal)|Vocabulario PUCP  
+宋华|Sòng Huá|(nombre personal)|Vocabulario PUCP  
+他是我的同学。|Tā shì wǒ de tóngxué.|Él es mi compañero de clase.|Ejemplos PUCP  
+我喜欢吃面包。|Wǒ xǐhuān chī miànbāo.|Me gusta comer pan.|Ejemplos PUCP  
+妈妈喜欢吃饺子。|Māma xǐhuān chī jiǎozi.|A mamá le gustan las empanadillas chinas.|Ejemplos PUCP  
+这是汉堡包。|Zhè shì hànbǎobāo.|Esto es una hamburguesa.|Ejemplos PUCP  
+王小云是老师。|Wáng Xiǎoyún shì lǎoshī.|Wang Xiaoyun es profesora.|Ejemplos PUCP  
+你们好！|Nǐmen hǎo!|¡Hola a todos!|Ejemplos PUCP  
+我很高兴认识你。|Wǒ hěn gāoxìng rènshi nǐ.|Estoy muy contento de conocerte.|Ejemplos PUCP  
+你是哪国人？|Nǐ shì nǎ guó rén?|¿De qué país eres?|Ejemplos PUCP  
+我学习汉语。|Wǒ xuéxí Hànyǔ.|Estudio chino.|Ejemplos PUCP  
+再见，朋友！|Zàijiàn, péngyou!|¡Adiós, amigo!|Ejemplos PUCP  
+这是米饭。|Zhè shì mǐfàn.|Esto es arroz cocido.|Ejemplos PUCP  
+爸爸喜欢喝茶。|Bàba xǐhuān hē chá.|A papá le gusta tomar té.|Ejemplos PUCP  
+她很小。|Tā hěn xiǎo.|Ella es muy pequeña.|Ejemplos PUCP  
+那个包子很大。|Nàge bāozi hěn dà.|Ese bollo al vapor es muy grande.|Ejemplos PUCP  
+您贵姓？|Nín guìxìng?|¿Cuál es su apellido?|Ejemplos PUCP  
+我叫马大为。|Wǒ jiào Mǎ Dàwéi.|Me llamo Ma Dawei.|Ejemplos PUCP  
+请问，这是北京吗？|Qǐngwèn, zhè shì Běijīng ma?|Disculpe, ¿esto es Pekín?|Ejemplos PUCP  
+你忙吗？|Nǐ máng ma?|¿Estás ocupado?|Ejemplos PUCP  
+我不饿。|Wǒ bù è.|No tengo hambre.|Ejemplos PUCP  
+他很累。|Tā hěn lèi.|Él está muy cansado.|Ejemplos PUCP  
+上海很大。|Shànghǎi hěn dà.|Shanghái es muy grande.|Ejemplos PUCP  
+你喜欢吃比萨饼吗？|Nǐ xǐhuān chī bǐsàbǐng ma?|¿Te gusta la pizza?|Ejemplos PUCP  
+这是法国的面包。|Zhè shì Fǎguó de miànbāo.|Este es pan francés.|Ejemplos PUCP  
+他是英国人。|Tā shì Yīngguó rén.|Él es británico.|Ejemplos PUCP  
+宋华是中国老师。|Sòng Huá shì Zhōngguó lǎoshī.|Song Hua es profesora china.|Ejemplos PUCP  
+早上好！|Zǎoshang hǎo!|¡Buenos días!|Ejemplos PUCP  
+你们都喜欢面条儿吗？|Nǐmen dōu xǐhuān miàntiáor ma?|¿A todos les gustan los fideos?|Ejemplos PUCP  
+我姓陈。|Wǒ xìng Chén.|Mi apellido es Chen.|Ejemplos PUCP  
+点心很好吃。|Diǎnxīn hěn hǎochī.|Los bocadillos son muy ricos.|Ejemplos PUCP  
+她在哪里？|Tā zài nǎlǐ?|¿Dónde está ella?|Ejemplos PUCP  
+请坐。|Qǐng zuò.|Por favor, siéntese.|Ejemplos PUCP  
+谢谢妈妈！|Xièxie māma!|¡Gracias, mamá!|Ejemplos PUCP  
+最近怎么样？|Zuìjìn zěnmeyàng?|¿Cómo has estado últimamente?|Ejemplos PUCP  
+你呢？|Nǐ ne?|¿Y tú?|Ejemplos PUCP  
+我喜欢中国。|Wǒ xǐhuān Zhōngguó.|Me gusta China.|Ejemplos PUCP  
+西班牙很漂亮。|Xībānyá hěn piàoliang.|España es muy bonita.|Ejemplos PUCP  
+德国和法国很近。|Déguó hé Fǎguó hěn jìn.|Alemania y Francia están cerca.|Ejemplos PUCP  
+加拿大很大。|Jiānádà hěn dà.|Canadá es muy grande.|Ejemplos PUCP  
+俄罗斯很冷。|Éluósī hěn lěng.|Rusia es muy fría.|Ejemplos PUCP  
+日本和韩国很近。|Rìběn hé Hánguó hěn jìn.|Japón y Corea del Sur están cerca.|Ejemplos PUCP  
+泰国菜很好吃。|Tàiguó cài hěn hǎochī.|La comida tailandesa es muy rica.|Ejemplos PUCP  
+印度很大。|Yìndù hěn dà.|India es muy grande.|Ejemplos PUCP  
+埃及有金字塔。|Āijí yǒu jīnzìtǎ.|Egipto tiene pirámides.|Ejemplos PUCP  
+澳大利亚很热。|Àodàlìyà hěn rè.|Australia es muy calurosa.|Ejemplos PUCP  
+我渴了。|Wǒ kě le.|Tengo sed.|Ejemplos PUCP  
+他困了。|Tā kùn le.|Él tiene sueño.|Ejemplos PUCP  
+马马虎虎。|Mǎmǎhūhū.|Más o menos.|Ejemplos PUCP  
+丁力波是美国学生。|Dīng Lìbō shì Měiguó xuéshēng.|Ding Libo es estudiante estadounidense.|Ejemplos PUCP  
+林哪是哪国人？|Lín Nǎ shì nǎ guó rén?|¿De qué país es Lin Na?|Ejemplos PUCP  
+我的爸爸喜欢米饭。|Wǒ de bàba xǐhuān mǐfàn.|A mi papá le gusta el arroz.|Ejemplos PUCP  
+妈妈在看那本书。|Māma zài kàn nà běn shū.|Mamá está leyendo ese libro.|Ejemplos PUCP  
+他是法国人。|Tā shì Fǎguó rén.|Él es francés.|Ejemplos PUCP  
+汉堡包很好吃。|Hànbǎobāo hěn hǎochī.|La hamburguesa es muy rica.|Ejemplos PUCP  
+你们要喝茶吗？|Nǐmen yào hē chá ma?|¿Queréis tomar té?|Ejemplos PUCP  
+王小云喜欢包子。|Wáng Xiǎoyún xǐhuān bāozi.|A Wang Xiaoyun le gustan los bollos al vapor.|Ejemplos PUCP  
+比萨饼很大。|Bǐsàbǐng hěn dà.|La pizza es muy grande.|Ejemplos PUCP  
+中国菜很好吃。|Zhōngguó cài hěn hǎochī.|La comida china es deliciosa.|Ejemplos PUCP  
+西班牙很热。|Xībānyá hěn rè.|España es muy calurosa.|Ejemplos PUCP  
+德国啤酒很棒。|Déguó píjiǔ hěn bàng.|La cerveza alemana es excelente.|Ejemplos PUCP  
+加拿大有很多树。|Jiānádà yǒu hěn duō shù.|Canadá tiene muchos árboles.|Ejemplos PUCP  
+英国下雨了。|Yīngguó xià yǔ le.|Está lloviendo en Reino Unido.|Ejemplos PUCP  
+澳大利亚的动物很特别。|Àodàlìyà de dòngwù hěn tèbié.|Los animales de Australia son muy especiales.|Ejemplos PUCP  
+俄罗斯冬天很冷。|Éluósī dōngtiān hěn lěng.|El invierno en Rusia es muy frío.|Ejemplos PUCP  
+日本科技很发达。|Rìběn kējì hěn fādá.|La tecnología japonesa es muy avanzada.|Ejemplos PUCP  
+韩国音乐很流行。|Hánguó yīnyuè hěn liúxíng.|La música coreana es muy popular.|Ejemplos PUCP  
+泰国旅游很好玩。|Tàiguó lǚyóu hěn hǎowán.|Viajar a Tailandia es muy divertido.|Ejemplos PUCP  
+印度人口很多。|Yìndù rénkǒu hěn duō.|India tiene mucha población.|Ejemplos PUCP  
+埃及有古老的历史。|Āijí yǒu gǔlǎo de lìshǐ.|Egipto tiene una historia antigua.|Ejemplos PUCP  
+点心很甜。|Diǎnxīn hěn tián.|Los bocadillos son muy dulces.|Ejemplos PUCP  
+我喜欢吃面条儿。|Wǒ xǐhuān chī miàntiáor.|Me gusta comer fideos.|Ejemplos PUCP  
+他不喜欢饺子。|Tā bù xǐhuān jiǎozi.|A él no le gustan las empanadillas.|Ejemplos PUCP  
+这是玉做的。|Zhè shì yù zuò de.|Esto está hecho de jade.|Ejemplos PUCP  
+贝很漂亮。|Bèi hěn piàoliang.|La concha es muy bonita.|Ejemplos PUCP  
+我的同学很忙。|Wǒ de tóngxué hěn máng.|Mi compañero de clase está muy ocupado.|Ejemplos PUCP  
+早上我不饿。|Zǎoshang wǒ bù è.|Por la mañana no tengo hambre.|Ejemplos PUCP  
+你们认识宋华吗？|Nǐmen rènshi Sòng Huá ma?|¿Conocéis a Song Hua?|Ejemplos PUCP  
+请问您贵姓？|Qǐngwèn nín guìxìng?|Disculpe, ¿cuál es su apellido?|Ejemplos PUCP  
+我姓王。|Wǒ xìng Wáng.|Mi apellido es Wang.|Ejemplos PUCP  
+他是我的老师。|Tā shì wǒ de lǎoshī.|Él es mi profesor.|Ejemplos PUCP  
+我很高兴认识您。|Wǒ hěn gāoxìng rènshi nín.|Estoy muy contento de conocerle.|Ejemplos PUCP  
+这是谁的书？|Zhè shì shéi de shū?|¿De quién es este libro?|Ejemplos PUCP  
+那是什么？|Nà shì shénme?|¿Qué es eso?|Ejemplos PUCP  
+我的名字叫林哪。|Wǒ de míngzi jiào Lín Nǎ.|Mi nombre es Lin Na.|Ejemplos PUCP  
+丁力波是美国同学。|Dīng Lìbō shì Měiguó tóngxué.|Ding Libo es un compañero de clase estadounidense.|Ejemplos PUCP  
+马大为喜欢中国。|Mǎ Dàwéi xǐhuān Zhōngguó.|A Ma Dawei le gusta China.|Ejemplos PUCP  
+上海的城市很大。|Shànghǎi de chéngshì hěn dà.|La ciudad de Shanghái es enorme.|Ejemplos PUCP  
+北京有很多人。|Běijīng yǒu hěn duō rén.|Pekín tiene mucha gente.|Ejemplos PUCP  
+美国的经济很强。|Měiguó de jīngjì hěn qiáng.|La economía de EE.UU. es fuerte.|Ejemplos PUCP  
+力是重要的。|Lì shì zhòngyào de.|La fuerza es importante.|Ejemplos PUCP  
+生词很难。|Shēngcí hěn nán.|Las palabras nuevas son difíciles.|Ejemplos PUCP  
+言多必失。|Yán duō bì shī.|Hablar mucho lleva a errores.|Ejemplos PUCP  
+人很多。|Rén hěn duō.|Hay mucha gente.|Ejemplos PUCP  
+木头很硬。|Mùtou hěn yìng.|La madera es muy dura.|Ejemplos PUCP  
+羊很可爱。|Yáng hěn kě'ài.|Las ovejas son muy tiernas.|Ejemplos PUCP  
+井水很凉。|Jǐngshuǐ hěn liáng.|El agua del pozo es muy fría.|Ejemplos PUCP  
+土地很肥沃。|Tǔdì hěn féiwò.|La tierra es muy fértil.|Ejemplos PUCP  
+我很困。|Wǒ hěn kùn.|Tengo mucho sueño.|Ejemplos PUCP  
+他渴了。|Tā kě le.|Él tiene sed.|Ejemplos PUCP  
+马马虎虎的回答。|Mǎmǎhūhū de huídá.|Una respuesta mediocre.|Ejemplos PUCP  
+你是谁？|Nǐ shì shéi?|¿Quién eres?|Preguntas y respuestas  
+你叫什么名字？|Nǐ jiào shénme míngzi?|¿Cómo te llamas?|Preguntas y respuestas  
+你姓什么？|Nǐ xìng shénme?|¿Cuál es tu apellido?|Preguntas y respuestas  
+你是哪国人？|Nǐ shì nǎ guó rén?|¿De qué país eres?|Preguntas y respuestas  
+你在哪里？|Nǐ zài nǎlǐ?|¿Dónde estás?|Preguntas y respuestas  
+你在学什么？|Nǐ zài xué shénme?|¿Qué estás estudiando?|Preguntas y respuestas  
+你喜欢吃什么？|Nǐ xǐhuān chī shénme?|¿Qué te gusta comer?|Preguntas y respuestas  
+这是什么？|Zhè shì shénme?|¿Qué es esto?|Preguntas y respuestas  
+那是什么？|Nà shì shénme?|¿Qué es eso?|Preguntas y respuestas  
+你的爸爸喜欢什么？|Nǐ de bàba xǐhuān shénme?|¿Qué le gusta a tu papá?|Preguntas y respuestas  
+你的妈妈喜欢什么？|Nǐ de māma xǐhuān shénme?|¿Qué le gusta a tu mamá?|Preguntas y respuestas  
+这是谁的书？|Zhè shì shéi de shū?|¿De quién es este libro?|Preguntas y respuestas  
+他是谁？|Tā shì shéi?|¿Quién es él?|Preguntas y respuestas  
+她是谁？|Tā shì shéi?|¿Quién es ella?|Preguntas y respuestas  
+你们在做什么？|Nǐmen zài zuò shénme?|¿Qué estáis haciendo?|Preguntas y respuestas  
+你在看什么？|Nǐ zài kàn shénme?|¿Qué estás mirando?|Preguntas y respuestas  
+你喜欢哪个国家？|Nǐ xǐhuān nǎge guójiā?|¿Qué país te gusta?|Preguntas y respuestas  
+中国在哪里？|Zhōngguó zài nǎlǐ?|¿Dónde está China?|Preguntas y respuestas  
+西班牙怎么样？|Xībānyá zěnmeyàng?|¿Cómo es España?|Preguntas y respuestas  
+法国菜好吃吗？|Fǎguó cài hǎochī ma?|¿La comida francesa es rica?|Preguntas y respuestas  
+你为什么学汉语？|Nǐ wèishéme xué Hànyǔ?|¿Por qué estudias chino?|Preguntas y respuestas  
+你什么时候来？|Nǐ shénme shíhou lái?|¿Cuándo vienes?|Preguntas y respuestas  
+你饿了吗？|Nǐ è le ma?|¿Tienes hambre?|Preguntas y respuestas  
+你渴了吗？|Nǐ kě le ma?|¿Tienes sed?|Preguntas y respuestas  
+你累了吗？|Nǐ lèi le ma?|¿Estás cansado?|Preguntas y respuestas  
+你忙什么？|Nǐ máng shénme?|¿Con qué estás ocupado?|Preguntas y respuestas  
+你的同学是谁？|Nǐ de tóngxué shì shéi?|¿Quién es tu compañero de clase?|Preguntas y respuestas  
+你的老师贵姓？|Nǐ de lǎoshī guìxìng?|¿Cuál es el apellido de tu profesor?|Preguntas y respuestas  
+上海怎么样？|Shànghǎi zěnmeyàng?|¿Cómo es Shanghái?|Preguntas y respuestas  
+北京大吗？|Běijīng dà ma?|¿Es Pekín grande?|Preguntas y respuestas  
+你喜欢什么点心？|Nǐ xǐhuān shénme diǎnxīn?|¿Qué bocadillos te gustan?|Preguntas y respuestas  
+你吃米饭吗？|Nǐ chī mǐfàn ma?|¿Comes arroz?|Preguntas y respuestas  
+你喜欢面条儿吗？|Nǐ xǐhuān miàntiáor ma?|¿Te gustan los fideos?|Preguntas y respuestas  
+饺子好吃吗？|Jiǎozi hǎochī ma?|¿Las empanadillas son ricas?|Preguntas y respuestas  
+包子大吗？|Bāozi dà ma?|¿Los bollos al vapor son grandes?|Preguntas y respuestas  
+汉堡包怎么样？|Hànbǎobāo zěnmeyàng?|¿Cómo está la hamburguesa?|Preguntas y respuestas  
+比萨饼好吃吗？|Bǐsàbǐng hǎochī ma?|¿La pizza está rica?|Preguntas y respuestas  
+你喜欢什么饮料？|Nǐ xǐhuān shénme yǐnliào?|¿Qué bebida te gusta?|Preguntas y respuestas  
+你认识谁？|Nǐ rènshi shéi?|¿A quién conoces?|Preguntas y respuestas  
+你高兴吗？|Nǐ gāoxìng ma?|¿Estás contento?|Preguntas y respuestas  
+你喜欢和谁学习？|Nǐ xǐhuān hé shéi xuéxí?|¿Con quién te gusta estudiar?|Preguntas y respuestas  
+你最近怎么样？|Nǐ zuìjìn zěnmeyàng?|¿Cómo has estado últimamente?|Preguntas y respuestas  
