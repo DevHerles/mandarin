@@ -52,6 +52,9 @@ class VocabularyDB:
         if 'needs_review' not in columns:
             cursor.execute('ALTER TABLE vocabulary ADD COLUMN needs_review BOOLEAN DEFAULT 0')
         
+        if 'archived' not in columns:
+            cursor.execute('ALTER TABLE vocabulary ADD COLUMN archived BOOLEAN DEFAULT 0')
+    
         # Crear tabla de configuración
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS config (
@@ -136,7 +139,75 @@ class VocabularyDB:
         
         conn.commit()
         conn.close()
-    
+
+    def toggle_word_archived(self, chinese: str, pinyin: str) -> bool:
+        """Alternar estado de archivado de una palabra"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Verificar si la columna archived existe
+            cursor.execute("PRAGMA table_info(vocabulary)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'archived' not in columns:
+                cursor.execute('ALTER TABLE vocabulary ADD COLUMN archived BOOLEAN DEFAULT 0')
+                conn.commit()
+            
+            # Obtener estado actual
+            cursor.execute('''
+                SELECT COALESCE(archived, 0) FROM vocabulary 
+                WHERE chinese = ? AND pinyin = ?
+            ''', (chinese, pinyin))
+            
+            result = cursor.fetchone()
+            if result:
+                current_state = result[0] or 0  # Asegurar que sea 0 si es None
+                new_state = 0 if current_state else 1
+                cursor.execute('''
+                    UPDATE vocabulary 
+                    SET archived = ?
+                    WHERE chinese = ? AND pinyin = ?
+                ''', (new_state, chinese, pinyin))
+                conn.commit()
+                conn.close()
+                return bool(new_state)
+            
+            conn.close()
+            return False
+        except Exception as e:
+            st.error(f"Error al cambiar estado de archivado: {e}")
+            return False
+
+    def get_word_archived_status(self, chinese: str, pinyin: str) -> bool:
+        """Obtener estado de archivado de una palabra"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT archived FROM vocabulary 
+                WHERE chinese = ? AND pinyin = ?
+            ''', (chinese, pinyin))
+            result = cursor.fetchone()
+            conn.close()
+            return bool(result[0]) if result else False
+        except:
+            return False
+
+    def get_archived_count(self, category: str = None) -> int:
+        """Obtener cantidad de palabras archivadas"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        if category and category != "Todas las categorías":
+            cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE archived = 1 AND category = ?", (category,))
+        else:
+            cursor.execute("SELECT COUNT(*) FROM vocabulary WHERE archived = 1")
+        
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+
     def toggle_word_review(self, chinese: str, pinyin: str) -> bool:
         """Alternar estado de revisión de una palabra"""
         try:
@@ -227,21 +298,36 @@ class VocabularyDB:
         conn.close()
         return categories
     
-    def get_words_by_category(self, category: str, review_only: bool = False) -> List[Dict]:
-        """Obtener palabras por categoría con opción de filtrar solo las de revisión"""
+    def get_words_by_category(self, category: str, review_only: bool = False, archived_only: bool = False) -> List[Dict]:
+        """Obtener palabras por categoría con opciones de filtrado"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
+        # Construir consulta base
+        base_query = "SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE"
+        conditions = []
+        params = []
+        
+        # Filtro de categoría
+        if category != "Todas las categorías":
+            conditions.append("category = ?")
+            params.append(category)
+        
+        # Filtros mutuamente excluyentes
         if review_only:
-            if category == "Todas las categorías":
-                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE needs_review = 1")
-            else:
-                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ? AND needs_review = 1", (category,))
+            conditions.append("needs_review = 1 AND archived = 0")
+        elif archived_only:
+            conditions.append("archived = 1")
         else:
-            if category == "Todas las categorías":
-                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary")
-            else:
-                cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ?", (category,))
+            conditions.append("archived = 0")  # Por defecto, no mostrar archivadas
+        
+        # Construir consulta final
+        if conditions:
+            query = f"{base_query} {' AND '.join(conditions)}"
+        else:
+            query = "SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE archived = 0"
+        
+        cursor.execute(query, params)
         
         words = []
         for row in cursor.fetchall():
@@ -255,9 +341,9 @@ class VocabularyDB:
         conn.close()
         return words
     
-    def get_random_word(self, category: str, review_only: bool = False) -> Optional[Dict]:
-        """Obtener una palabra aleatoria de la categoría con opción de filtrar solo las de revisión"""
-        words = self.get_words_by_category(category, review_only)
+    def get_random_word(self, category: str, review_only: bool = False, archived_only: bool = False) -> Optional[Dict]:
+        """Obtener una palabra aleatoria de la categoría con opciones de filtrado"""
+        words = self.get_words_by_category(category, review_only, archived_only)
         if words:
             return random.choice(words)
         return None
@@ -926,17 +1012,13 @@ def main():
             else:
                 auto_advance = st.checkbox("🔄 Avance automático", False)
 
-        review_filter = st.checkbox(
-            "🔄 Solo palabras para repasar",
-            value=False,
-            key="review_filter",
-            help="Mostrar únicamente las palabras marcadas para repaso"
+        st.markdown("**📚 Filtro de Palabras:**")
+        word_filter = st.radio(
+            "Selecciona qué palabras mostrar:",
+            ["📚 Palabras normales", "🔄 Solo palabras para repasar", "📦 Solo palabras archivadas"],
+            index=0,
+            key="word_filter_radio"
         )
-        
-        # Mostrar estadísticas de revisión
-        review_count = db.get_review_count(selected_category)
-        if review_count > 0:
-            st.info(f"📝 {review_count} palabra(s) marcada(s) para repasar en esta categoría")
 
         # Mostrar configuraciones solo si NO es modo análisis de texto
         if not text_analysis_mode:
@@ -948,6 +1030,7 @@ def main():
             st.metric("Modo actual", study_mode)
             st.metric("Tiempo por fase", f"{wait_time}s")
             st.metric("Palabras para repasar", db.get_review_count(selected_category))
+            st.metric("Palabras archivadas", db.get_archived_count(selected_category))
 
         else:
             # Para modo análisis de texto, mostrar información diferente
@@ -1004,7 +1087,27 @@ def main():
         st.session_state.current_category_words = []
     if 'review_filter' not in st.session_state:
         st.session_state.review_filter = False
-    
+    if 'archived_filter' not in st.session_state:
+        st.session_state.archived_filter = False
+    if 'review_filter_state' not in st.session_state:
+        st.session_state.review_filter_state = False
+    if 'archived_filter_state' not in st.session_state:
+        st.session_state.archived_filter_state = False
+
+    # Extraer los valores booleanos
+    review_filter = word_filter == "🔄 Solo palabras para repasar"
+    archived_filter = word_filter == "📦 Solo palabras archivadas"
+
+    # Mostrar estadísticas según el filtro seleccionado
+    if st.session_state.review_filter_state:
+        review_count = db.get_review_count(selected_category)
+        if review_count > 0:
+            st.info(f"📝 {review_count} palabra(s) marcada(s) para repasar en esta categoría")
+    elif st.session_state.archived_filter:
+        archived_count = db.get_archived_count(selected_category)
+        if archived_count > 0:
+            st.info(f"📦 {archived_count} palabra(s) archivada(s) en esta categoría")
+
     # Actualizar configuraciones
     st.session_state.wait_time = wait_time
     st.session_state.auto_advance = auto_advance
@@ -1024,14 +1127,26 @@ def main():
         st.session_state.current_word_index = 0
         st.session_state.current_category_words = db.get_words_by_category(selected_category)
     
-    if review_filter != st.session_state.review_filter:
-        st.session_state.review_filter = review_filter
+    if (review_filter != st.session_state.review_filter_state or 
+        archived_filter != st.session_state.archived_filter):
+        
+        # Actualizar estados
+        st.session_state.review_filter_state = review_filter
+        st.session_state.archived_filter = archived_filter
+        
+        # Forzar recarga de datos
         st.session_state.current_word = None
         st.session_state.phase = 0
         st.session_state.is_playing = False
         st.session_state.phase_start_time = None
         st.session_state.current_word_index = 0
         st.session_state.current_category_words = []
+        
+        # Limpiar último flashcard guardado cuando se cambia de filtro
+        db.clear_last_flashcard()
+        
+        # Recargar inmediatamente
+        st.rerun()
     
     # Título principal
     st.markdown('<h1 class="main-title">学习中文 🎴</h1>', unsafe_allow_html=True)
@@ -1080,12 +1195,18 @@ def main():
             # Lógica para obtener nueva palabra según el modo seleccionado
             if st.session_state.random_order:
                 # Modo aleatorio
-                word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
+                word_data = db.get_random_word(st.session_state.current_category, 
+                                         review_only=st.session_state.review_filter_state, 
+                                         archived_only=st.session_state.archived_filter)
+
             else:
                 # Modo secuencial
                 if not st.session_state.current_category_words:
                     # Cargar todas las palabras de la categoría si no están cargadas
-                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
+                    st.session_state.current_category_words = db.get_words_by_category(
+                        st.session_state.current_category, 
+                        st.session_state.review_filter_state, 
+                        st.session_state.archived_filter)
                     st.session_state.current_word_index = 0
                 
                 if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1172,11 +1293,15 @@ def main():
                     
                     # Usar la lógica de selección de palabras según el modo
                     if st.session_state.random_order:
-                        word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
+                        word_data = db.get_random_word(st.session_state.current_category, 
+                                         review_only=st.session_state.review_filter_state, 
+                                         archived_only=st.session_state.archived_filter)
+                        
+
                     else:
                         # Modo secuencial
                         if not st.session_state.current_category_words:
-                            st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
+                            st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter, archived_filter)
                             st.session_state.current_word_index = 0
                         
                         if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1228,11 +1353,14 @@ def main():
                         
                         # Usar la lógica de selección de palabras según el modo
                         if st.session_state.random_order:
-                            word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
+                            word_data = db.get_random_word(st.session_state.current_category, 
+                                         review_only=st.session_state.review_filter_state, 
+                                         archived_only=st.session_state.archived_filter)
+
                         else:
                             # Modo secuencial
                             if not st.session_state.current_category_words:
-                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
+                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter, archived_filter)
                                 st.session_state.current_word_index = 0
                             
                             if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1275,29 +1403,53 @@ def main():
     with col6:
         # Mover el checkbox de orden aleatorio aquí si hay espacio, o crear nueva fila
         if st.session_state.current_word and st.session_state.current_data:
-            # Verificar estado actual de revisión
-            is_marked = db.get_word_review_status(
-                st.session_state.current_data['chinese'], 
-                st.session_state.current_data['pinyin']
-            )
-            
-            button_text = "✅ Quitar Repaso" if is_marked else "🔄 Marcar Repaso"
-            button_color = "#e74c3c" if is_marked else "#3498db"
-            
-            if st.button(button_text, key="toggle_review", use_container_width=True):
-                new_state = db.toggle_word_review(
-                    st.session_state.current_data['chinese'],
-                    st.session_state.current_data['pinyin']
-                )
+            if st.session_state.archived_filter:
+                # En modo archivadas, mostrar botón de desarchivar
+                if st.button("📤 Desarchivar", key="unarchive_word", use_container_width=True):
+                    new_state = db.toggle_word_archived(
+                        st.session_state.current_data['chinese'],
+                        st.session_state.current_data['pinyin']
+                    )
+                    st.success("📤 Palabra desarchivada")
+                    st.session_state.current_category_words = []
+                    time.sleep(0.5)
+                    st.rerun()
+            else:
+                # En otros modos, mostrar botones de repaso y archivar
+                col6a, col6b = st.columns(2)
                 
-                if new_state:
-                    st.success("✅ Palabra marcada para repasar")
-                else:
-                    st.success("❌ Palabra quitada de repaso")
+                with col6a:
+                    # Botón de repaso
+                    is_marked = db.get_word_review_status(
+                        st.session_state.current_data['chinese'], 
+                        st.session_state.current_data['pinyin']
+                    )
+                    button_text = "✅ Quitar Repaso" if is_marked else "🔄 Marcar Repaso"
+                    
+                    if st.button(button_text, key="toggle_review", use_container_width=True):
+                        new_state = db.toggle_word_review(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+                        
+                        if new_state:
+                            st.success("✅ Palabra marcada para repasar")
+                        else:
+                            st.success("❌ Palabra quitada de repaso")
+                        
+                        time.sleep(0.5)
+                        st.rerun()
                 
-                # Pequeña pausa para mostrar el mensaje
-                time.sleep(0.5)
-                st.rerun()
+                with col6b:
+                    # Botón de archivar
+                    if st.button("📦 Archivar", key="archive_word", use_container_width=True):
+                        new_state = db.toggle_word_archived(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+                        st.success("📦 Palabra archivada")
+                        time.sleep(0.5)
+                        st.rerun()
     
     # Área principal de flashcard
     if st.session_state.current_word is None:
@@ -1497,11 +1649,14 @@ def main():
                         
                         # Usar la lógica de selección de palabras según el modo
                         if st.session_state.random_order:
-                            word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
+                            word_data = db.get_random_word(st.session_state.current_category, 
+                                         review_only=st.session_state.review_filter_state, 
+                                         archived_only=st.session_state.archived_filter)
+
                         else:
                             # Modo secuencial
                             if not st.session_state.current_category_words:
-                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
+                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter, archived_filter)
                                 st.session_state.current_word_index = 0
                             
                             if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1543,11 +1698,14 @@ def main():
                             
                             # Usar la lógica de selección de palabras según el modo
                             if st.session_state.random_order:
-                                word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
+                                word_data = db.get_random_word(st.session_state.current_category, 
+                                         review_only=st.session_state.review_filter_state, 
+                                         archived_only=st.session_state.archived_filter)
+
                             else:
                                 # Modo secuencial (código existente)
                                 if not st.session_state.current_category_words:
-                                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter)
+                                    st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter, archived_filter)
                                     st.session_state.current_word_index = 0
                                 
                                 if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -1661,7 +1819,10 @@ def main():
                     else:
                         # Move to next word
                         st.session_state.words_studied += 1
-                        word_data = db.get_random_word(st.session_state.current_category, review_only=review_filter)
+                        word_data = db.get_random_word(st.session_state.current_category, 
+                                         review_only=st.session_state.review_filter_state, 
+                                         archived_only=st.session_state.archived_filter)
+
                         if word_data:
                             st.session_state.word_history.append(word_data)
                             st.session_state.history_index = len(st.session_state.word_history) - 1
