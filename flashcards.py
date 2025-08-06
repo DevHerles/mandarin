@@ -642,38 +642,77 @@ def admin_panel(db: VocabularyDB):
         if not df.empty:
             st.dataframe(df, use_container_width=True)
             
-            # Seleccionar palabra para editar
-            word_ids = df['id'].tolist()
-            selected_id = st.selectbox("Seleccionar palabra para editar:", 
-                                     [f"{row['chinese']} - {row['spanish']}" for _, row in df.iterrows()],
-                                     key="edit_select")
+            # Crear opciones para el selectbox usando una estructura más simple
+            word_options = ["Seleccionar palabra..."]  # Opción por defecto
+            word_mapping = {}  # Mapear texto de opción a ID
             
-            if selected_id:
-                selected_row = df.iloc[df.index[df.apply(lambda x: f"{x['chinese']} - {x['spanish']}" == selected_id, axis=1)].tolist()[0]]
+            for idx, row in df.iterrows():
+                option_text = f"{row['chinese']} ({row['pinyin']}) - {row['spanish']}"
+                word_options.append(option_text)
+                word_mapping[option_text] = row['id']
+            
+            # Seleccionar palabra para editar
+            selected_option = st.selectbox(
+                "Seleccionar palabra para editar:", 
+                word_options,
+                key="edit_select"
+            )
+            
+            if selected_option and selected_option != "Seleccionar palabra...":
+                # Obtener el ID de la palabra seleccionada
+                word_id = word_mapping[selected_option]
                 
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    edit_chinese = st.text_input("Chino:", value=selected_row['chinese'], key="edit_chinese")
-                    edit_pinyin = st.text_input("Pinyin:", value=selected_row['pinyin'], key="edit_pinyin")
-                
-                with col2:
-                    edit_spanish = st.text_input("Español:", value=selected_row['spanish'], key="edit_spanish")
-                    edit_category = st.text_input("Categoría:", value=selected_row['category'], key="edit_category")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    if st.button("💾 Actualizar", key="update_btn"):
-                        if db.update_word(selected_row['id'], edit_chinese, edit_pinyin, edit_spanish, edit_category):
-                            st.success("✅ Palabra actualizada")
-                            st.rerun()
-                
-                with col2:
-                    if st.button("🗑️ Eliminar", key="delete_btn"):
-                        if db.delete_word(selected_row['id']):
-                            st.success("✅ Palabra eliminada")
-                            st.rerun()
+                # Buscar la fila correspondiente
+                try:
+                    selected_row = df[df['id'] == word_id].iloc[0]
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        edit_chinese = st.text_input("Chino:", value=selected_row['chinese'], key="edit_chinese")
+                        edit_pinyin = st.text_input("Pinyin:", value=selected_row['pinyin'], key="edit_pinyin")
+                    
+                    with col2:
+                        edit_spanish = st.text_input("Español:", value=selected_row['spanish'], key="edit_spanish")
+                        edit_category = st.text_input("Categoría:", value=selected_row['category'], key="edit_category")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        if st.button("💾 Actualizar", key="update_btn"):
+                            if edit_chinese and edit_pinyin and edit_spanish and edit_category:
+                                if db.update_word(selected_row['id'], edit_chinese, edit_pinyin, edit_spanish, edit_category):
+                                    st.success("✅ Palabra actualizada")
+                                    st.rerun()
+                            else:
+                                st.error("❌ Por favor completa todos los campos")
+                    
+                    with col2:
+                        if st.button("🗑️ Eliminar", key="delete_btn", type="secondary"):
+                            # Confirmación antes de eliminar
+                            st.warning(f"⚠️ ¿Estás seguro de eliminar '{selected_row['chinese']}'?")
+                            col2a, col2b = st.columns(2)
+                            with col2a:
+                                if st.button("✅ Confirmar", key="confirm_delete"):
+                                    if db.delete_word(selected_row['id']):
+                                        st.success("✅ Palabra eliminada")
+                                        st.rerun()
+                            with col2b:
+                                if st.button("❌ Cancelar", key="cancel_delete"):
+                                    st.info("Eliminación cancelada")
+                    
+                except IndexError:
+                    st.error("❌ Error al cargar la palabra seleccionada")
+                    
+        else:
+            if filter_category == "Todas":
+                st.info("📭 No hay palabras en la base de datos")
+            else:
+                st.info(f"📭 No hay palabras en la categoría '{filter_category}'")
+            
+            # Botón para agregar primera palabra
+            if st.button("➕ Agregar Primera Palabra", key="add_first_word"):
+                st.info("💡 Ve a la pestaña 'Agregar Palabra' para comenzar")
     
     with tab3:
         st.markdown("### Importar desde CSV")
