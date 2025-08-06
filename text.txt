@@ -1,0 +1,14 @@
+1. What? | 什么 | 你吃什么？ | What do you eat?
+2. Why? | 为什么 | 你为什么来？ | Why did you come?
+3. What to do? | 怎么办 | 我不知道怎么办。| I don't know what to do.
+4. Who? | 谁 | 谁是你的老师？ | Who is your teacher?
+5. Whom? | 谁 | 你在等谁？ | Whom are you waiting for?
+6. Where? | 哪里 / 哪儿 | 你住在哪里？ | Where do you live?
+7. Which? | 哪个 | 你喜欢哪个？ | Which one do you like?
+8. How many? (>10) | 多少 | 你有多少钱？ | How much money do you have?
+9. How many? (≤10) | 几 | 你有几个妹妹？ | How many younger sisters do you have?
+10. How to do? | 怎么做 | 这个菜怎么做？ | How do you cook this dish?
+11. What's the matter? | 怎么了 | 你怎么了？ | What's the matter with you?
+12. What about you? | 你呢 | 我是秘鲁人，你呢？ | I’m Peruvian, what about you?
+13. How? | 怎么 | 你怎么来学校？ | How do you come to school?
+14. When? | 什么时候 | 你什么时候去北京？ | When are you going to Beijing?
