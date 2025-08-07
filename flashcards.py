@@ -41,6 +41,9 @@ class VocabularyDB:
                 spanish TEXT NOT NULL,
                 category TEXT NOT NULL,
                 needs_review BOOLEAN DEFAULT 0,
+                archived BOOLEAN DEFAULT 0,
+                explanation TEXT,
+                literal_translation TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
@@ -55,6 +58,12 @@ class VocabularyDB:
         if 'archived' not in columns:
             cursor.execute('ALTER TABLE vocabulary ADD COLUMN archived BOOLEAN DEFAULT 0')
     
+        if 'explanation' not in columns:
+            cursor.execute('ALTER TABLE vocabulary ADD COLUMN explanation TEXT')
+            
+        if 'literal_translation' not in columns:
+            cursor.execute('ALTER TABLE vocabulary ADD COLUMN literal_translation TEXT')
+
         # Crear tabla de configuración
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS config (
@@ -259,9 +268,9 @@ class VocabularyDB:
         cursor = conn.cursor()
         
         if category == "Todas las categorías":
-            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE needs_review = 1")
+            cursor.execute("SELECT chinese, pinyin, spanish, category, explanation, literal_translation FROM vocabulary WHERE needs_review = 1")
         else:
-            cursor.execute("SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE category = ? AND needs_review = 1", (category,))
+            cursor.execute("SELECT chinese, pinyin, spanish, category, explanation, literal_translation FROM vocabulary WHERE category = ? AND needs_review = 1", (category,))
         
         words = []
         for row in cursor.fetchall():
@@ -269,7 +278,9 @@ class VocabularyDB:
                 'chinese': row[0],
                 'pinyin': row[1],
                 'spanish': row[2],
-                'category': row[3]
+                'category': row[3],
+                'explanation': row[4] if len(row) > 4 else '',
+                'literal_translation': row[5] if len(row) > 5 else ''
             })
         
         conn.close()
@@ -304,7 +315,7 @@ class VocabularyDB:
         cursor = conn.cursor()
         
         # Construir consulta base
-        base_query = "SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE"
+        base_query = "SELECT chinese, pinyin, spanish, category, explanation, literal_translation FROM vocabulary WHERE"
         conditions = []
         params = []
         
@@ -325,7 +336,7 @@ class VocabularyDB:
         if conditions:
             query = f"{base_query} {' AND '.join(conditions)}"
         else:
-            query = "SELECT chinese, pinyin, spanish, category FROM vocabulary WHERE archived = 0"
+            query = "SELECT chinese, pinyin, spanish, category, explanation, literal_translation FROM vocabulary WHERE archived = 0"
         
         cursor.execute(query, params)
         
@@ -335,7 +346,9 @@ class VocabularyDB:
                 'chinese': row[0],
                 'pinyin': row[1],
                 'spanish': row[2],
-                'category': row[3]
+                'category': row[3],
+                'explanation': row[4] if len(row) > 4 else '',
+                'literal_translation': row[5] if len(row) > 5 else ''
             })
         
         conn.close()
@@ -348,15 +361,15 @@ class VocabularyDB:
             return random.choice(words)
         return None
     
-    def add_word(self, chinese: str, pinyin: str, spanish: str, category: str) -> bool:
+    def add_word(self, chinese: str, pinyin: str, spanish: str, category: str, explanation: str = '', literal_translation: str = '') -> bool:
         """Agregar nueva palabra"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO vocabulary (chinese, pinyin, spanish, category)
-                VALUES (?, ?, ?, ?)
-            ''', (chinese, pinyin, spanish, category))
+                INSERT INTO vocabulary (chinese, pinyin, spanish, category, explanation, literal_translation)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (chinese, pinyin, spanish, category, explanation, literal_translation))
             conn.commit()
             conn.close()
             return True
@@ -364,16 +377,16 @@ class VocabularyDB:
             st.error(f"Error al agregar palabra: {e}")
             return False
     
-    def update_word(self, word_id: int, chinese: str, pinyin: str, spanish: str, category: str) -> bool:
+    def update_word(self, word_id: int, chinese: str, pinyin: str, spanish: str, category: str, explanation: str = '', literal_translation: str = '') -> bool:
         """Actualizar palabra existente"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             cursor.execute('''
                 UPDATE vocabulary 
-                SET chinese = ?, pinyin = ?, spanish = ?, category = ?
+                SET chinese = ?, pinyin = ?, spanish = ?, category = ?, explanation = ?, literal_translation = ?
                 WHERE id = ?
-            ''', (chinese, pinyin, spanish, category, word_id))
+            ''', (chinese, pinyin, spanish, category, explanation, literal_translation, word_id))
             conn.commit()
             conn.close()
             return True
@@ -420,10 +433,14 @@ class VocabularyDB:
             
             for _, row in df.iterrows():
                 try:
+                    # Obtener valores opcionales
+                    explanation = row.get('explanation', '')
+                    literal_translation = row.get('literal_translation', '')
+                    
                     cursor.execute('''
-                        INSERT INTO vocabulary (chinese, pinyin, spanish, category)
-                        VALUES (?, ?, ?, ?)
-                    ''', (row['chinese'], row['pinyin'], row['spanish'], row['category']))
+                        INSERT INTO vocabulary (chinese, pinyin, spanish, category, explanation, literal_translation)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (row['chinese'], row['pinyin'], row['spanish'], row['category'], explanation, literal_translation))
                     added += 1
                 except:
                     errors += 1
@@ -602,10 +619,9 @@ def admin_panel(db: VocabularyDB):
         with col1:
             chinese = st.text_input("Palabra en Chino:", key="add_chinese")
             pinyin = st.text_input("Pinyin:", key="add_pinyin")
+            spanish = st.text_input("Traducción al Español:", key="add_spanish")
         
         with col2:
-            spanish = st.text_input("Traducción al Español:", key="add_spanish")
-            
             # Obtener categorías existentes
             categories = db.get_categories()
             category_options = categories + ["➕ Nueva categoría"]
@@ -617,13 +633,19 @@ def admin_panel(db: VocabularyDB):
             else:
                 category = category_choice
         
+        # Nuevos campos en área completa
+        explanation = st.text_area("Explicación (opcional):", key="add_explanation", 
+                                 help="Contexto, uso común, notas culturales, etc.")
+        literal_translation = st.text_input("Traducción Literal (opcional):", key="add_literal_translation",
+                                          help="Traducción palabra por palabra")
+        
         if st.button("✅ Agregar Palabra", key="add_word_btn"):
             if chinese and pinyin and spanish and category:
-                if db.add_word(chinese, pinyin, spanish, category):
+                if db.add_word(chinese, pinyin, spanish, category, explanation, literal_translation):
                     st.success("✅ Palabra agregada exitosamente")
                     st.rerun()
             else:
-                st.error("❌ Por favor completa todos los campos")
+                st.error("❌ Por favor completa todos los campos obligatorios")
     
     with tab2:
         st.markdown("### Ver y Editar Vocabulario")
@@ -642,9 +664,9 @@ def admin_panel(db: VocabularyDB):
         if not df.empty:
             st.dataframe(df, use_container_width=True)
             
-            # Crear opciones para el selectbox usando una estructura más simple
-            word_options = ["Seleccionar palabra..."]  # Opción por defecto
-            word_mapping = {}  # Mapear texto de opción a ID
+            # Crear opciones para el selectbox
+            word_options = ["Seleccionar palabra..."]
+            word_mapping = {}
             
             for idx, row in df.iterrows():
                 option_text = f"{row['chinese']} ({row['pinyin']}) - {row['spanish']}"
@@ -659,10 +681,8 @@ def admin_panel(db: VocabularyDB):
             )
             
             if selected_option and selected_option != "Seleccionar palabra...":
-                # Obtener el ID de la palabra seleccionada
                 word_id = word_mapping[selected_option]
                 
-                # Buscar la fila correspondiente
                 try:
                     selected_row = df[df['id'] == word_id].iloc[0]
                     
@@ -671,25 +691,33 @@ def admin_panel(db: VocabularyDB):
                     with col1:
                         edit_chinese = st.text_input("Chino:", value=selected_row['chinese'], key="edit_chinese")
                         edit_pinyin = st.text_input("Pinyin:", value=selected_row['pinyin'], key="edit_pinyin")
+                        edit_spanish = st.text_input("Español:", value=selected_row['spanish'], key="edit_spanish")
                     
                     with col2:
-                        edit_spanish = st.text_input("Español:", value=selected_row['spanish'], key="edit_spanish")
                         edit_category = st.text_input("Categoría:", value=selected_row['category'], key="edit_category")
+                        edit_literal_translation = st.text_input("Traducción Literal:", 
+                                                               value=selected_row.get('literal_translation', ''), 
+                                                               key="edit_literal_translation")
+                    
+                    # Campo de explicación en área completa
+                    edit_explanation = st.text_area("Explicación:", 
+                                                   value=selected_row.get('explanation', ''), 
+                                                   key="edit_explanation")
                     
                     col1, col2 = st.columns(2)
                     
                     with col1:
                         if st.button("💾 Actualizar", key="update_btn"):
                             if edit_chinese and edit_pinyin and edit_spanish and edit_category:
-                                if db.update_word(selected_row['id'], edit_chinese, edit_pinyin, edit_spanish, edit_category):
+                                if db.update_word(selected_row['id'], edit_chinese, edit_pinyin, 
+                                                edit_spanish, edit_category, edit_explanation, edit_literal_translation):
                                     st.success("✅ Palabra actualizada")
                                     st.rerun()
                             else:
-                                st.error("❌ Por favor completa todos los campos")
+                                st.error("❌ Por favor completa todos los campos obligatorios")
                     
                     with col2:
                         if st.button("🗑️ Eliminar", key="delete_btn", type="secondary"):
-                            # Confirmación antes de eliminar
                             st.warning(f"⚠️ ¿Estás seguro de eliminar '{selected_row['chinese']}'?")
                             col2a, col2b = st.columns(2)
                             with col2a:
@@ -710,26 +738,25 @@ def admin_panel(db: VocabularyDB):
             else:
                 st.info(f"📭 No hay palabras en la categoría '{filter_category}'")
             
-            # Botón para agregar primera palabra
             if st.button("➕ Agregar Primera Palabra", key="add_first_word"):
                 st.info("💡 Ve a la pestaña 'Agregar Palabra' para comenzar")
     
     with tab3:
         st.markdown("### Importar desde CSV")
         
-        st.info("El CSV debe contener las columnas: chinese,pinyin,spanish,category")
+        st.info("El CSV debe contener las columnas obligatorias: chinese,pinyin,spanish,category")
+        st.info("Columnas opcionales: explanation,literal_translation")
         
-        # Ejemplo de formato
+        # Ejemplo de formato actualizado
         st.markdown("**Ejemplo de formato CSV:**")
-        example_csv = """chinese|pinyin|spanish|category
-你好|nǐ hǎo|Hola|Saludos
-再见|zài jiàn|Adiós|Saludos"""
+        example_csv = """chinese|pinyin|spanish|category|explanation|literal_translation
+你好|nǐ hǎo|Hola|Saludos|Saludo común usado en cualquier momento|Tú bueno
+再见|zài jiàn|Adiós|Saludos|Despedida formal|Otra vez ver"""
         st.code(example_csv)
         
         uploaded_file = st.file_uploader("Cargar archivo CSV", type=['csv'])
         
         if uploaded_file is not None:
-            # Mostrar preview
             csv_data = uploaded_file.getvalue().decode('utf-8')
             st.markdown("**Vista previa:**")
             preview_df = pd.read_csv(io.StringIO(csv_data), sep='|')
@@ -747,20 +774,16 @@ def admin_panel(db: VocabularyDB):
     with tab4:
         st.markdown("### Exportar Vocabulario")
         
-        # Obtener datos
         df = db.get_all_words()
         
-        # Opción de filtrar por categoría
         categories = ["Todas"] + db.get_categories()
         export_category = st.selectbox("Exportar categoría:", categories, key="export_category")
         
         if export_category != "Todas":
             df = df[df['category'] == export_category]
         
-        # Mostrar estadísticas
         st.metric("Total de palabras a exportar", len(df))
         
-        # Preparar CSV
         csv = df.to_csv(index=False, sep='|')
         
         st.download_button(
@@ -827,11 +850,65 @@ def main():
                 font-size: 0.3em;
                 font-family: Libertine, sans-serif;
                 font-weight: 500;
+                p {
+                    color: #34495e;
+                    margin: 0;
+                    align-items: center;
+                    text-align: center;
+                    font-size: 1.0em;
+                    font-family: Libertine, sans-serif;
+                }
             }
 
             .translation {
                 font-size: 0.2em;
                 font-family: 'Montserrat', sans-serif;
+                p {
+                    color: #34495e;
+                    margin: 0;
+                    align-items: center;
+                    text-align: center;
+                    font-size: 1.0em;
+                    font-family: Libertine, sans-serif;
+                }
+            }
+        }
+        .literal-translation {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            color: #34495e;
+            p {
+                color: #34495e;
+                margin: 0;
+                align-items: center;
+                text-align: center;
+                font-size: 1.2em;
+                font-family: Libertine, sans-serif;
+            }
+        }
+        .explanation {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            color: #34495e;
+            p {
+                color: #34495e;
+                margin: 0;
+                align-items: center;
+                text-align: center;
+                font-size: 1.2em;
+                font-family: Libertine, sans-serif;
             }
         }
         .review-indicator {
@@ -1654,6 +1731,28 @@ def main():
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+
+            # Mostrar información adicional si existe
+            if st.session_state.current_data.get('literal_translation') or st.session_state.current_data.get('explanation'):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.session_state.current_data.get('literal_translation'):
+                        st.markdown(f"""
+                        <div class="literal-translation">
+                            <h5>🔤 Traducción Literal:</h5>
+                            <p>{st.session_state.current_data['literal_translation']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                with col2:
+                    if st.session_state.current_data.get('explanation'):
+                        st.markdown(f"""
+                        <div class="explanation">
+                            <h5>💡 Explicación:</h5>
+                            <p>{st.session_state.current_data['explanation']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
 
             # Auto-play audio
             audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
