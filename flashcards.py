@@ -891,7 +891,7 @@ def main():
                 margin: 0;
                 align-items: center;
                 text-align: center;
-                font-size: 1.2em;
+                font-size: 1.8em;
                 font-family: Libertine, sans-serif;
             }
         }
@@ -910,7 +910,7 @@ def main():
                 margin: 0;
                 align-items: center;
                 text-align: center;
-                font-size: 1.2em;
+                font-size: 1.8em;
                 font-family: Libertine, sans-serif;
             }
         }
@@ -947,7 +947,7 @@ def main():
             background: #f39c12;
             color: white;
             border-radius: 10px;
-            font-size: 1.2em;
+            font-size: 1.8em;
             font-weight: bold;
         }
         .audio-playing {
