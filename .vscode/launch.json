@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug Streamlit App",
+        "type": "debugpy",
+        "request": "launch",
+        "python": "/home/herles/claude/bin/python",  // Change if using global Python or Windows
+        "program": "/home/herles/claude/bin/streamlit",  // Change if using global Python or Windows
+        "args": [
+          "run",
+          "flashcards.py"  // Replace with your actual Streamlit file
+        ],
+        "console": "integratedTerminal",
+        "env": {
+          "STREAMLIT_ENV": "development"
+        }
+      }
+    ]
+  }
+  
