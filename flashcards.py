@@ -804,6 +804,9 @@ def main():
     st.markdown("""
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Han+Sans+SC&display=swap" rel="stylesheet">
     <style>
         @font-face {
             font-family: KaiTi;
@@ -820,7 +823,7 @@ def main():
             font-display: swap;
         }
         .stroke-chinese-word {
-            font-family: KaiTi, 'Noto Serif SC', serif !important;
+            font-family: var(--chinese-font), 'Noto Serif SC', serif !important;
             font-size: 2.8em !important;
         }
         .main-title {
@@ -831,7 +834,7 @@ def main():
             margin-bottom: 30px;
         }
         .chinese-word {
-            font-family: KaiTi, 'Noto Serif SC', serif !important;
+            font-family: var(--chinese-font), 'Noto Serif SC', serif !important;
             font-size: 7em;
             text-align: center;
             color: #000000;
@@ -983,7 +986,7 @@ def main():
         }
         .chinese-input-text {
             font-size: 2.8em;
-            font-family: KaiTi, 'Noto Serif SC', serif !important;
+            font-family: var(--chinese-font), 'Noto Serif SC', serif !important;
             margin-bottom: 10px;
         }
         .pinyin-display {
@@ -1031,7 +1034,7 @@ def main():
             }
             .chinese-input-text {
                 font-size: 6em;
-                font-family: KaiTi, 'Noto Serif SC', serif !important;
+                font-family: var(--chinese-font), 'Noto Serif SC', serif !important;
                 margin-bottom: 10px;
             }
         }
@@ -1059,7 +1062,7 @@ def main():
             }
             .chinese-input-text {
                 font-size: 5.8em;
-                font-family: KaiTi, 'Noto Serif SC', serif !important;
+                font-family: var(--chinese-font), 'Noto Serif SC', serif !important;
                 margin-bottom: 10px;
             }
         }
@@ -1141,6 +1144,25 @@ def main():
             index=0,
             key="word_filter_radio"
         )
+
+        # Selector de fuente
+        st.markdown("**🖋️ Tipo de Letra:**")
+        font_choice = st.radio(
+            "Selecciona la fuente para caracteres chinos:",
+            ["KaiTi (Caligráfico)", 
+            "Noto Sans SC (Moderno)", 
+            "Noto Serif SC (Clásico)", ],
+            index=0,
+            key="font_selector"
+        )
+
+        # Aplicar CSS dinámico según la selección
+        if font_choice == "KaiTi (Caligráfico)":
+            st.markdown("<style>:root { --chinese-font: KaiTi; }</style>", unsafe_allow_html=True)
+        elif font_choice == "Noto Sans SC (Moderno)":
+            st.markdown("<style>:root { --chinese-font: 'Noto Sans SC'; }</style>", unsafe_allow_html=True)
+        elif font_choice == "Noto Serif SC (Clásico)":
+            st.markdown("<style>:root { --chinese-font: 'Noto Serif SC'; }</style>", unsafe_allow_html=True)
 
         # Mostrar configuraciones solo si NO es modo análisis de texto
         if not text_analysis_mode:
