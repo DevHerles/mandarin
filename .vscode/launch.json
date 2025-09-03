@@ -15,6 +15,24 @@
         "env": {
           "STREAMLIT_ENV": "development"
         }
+      },
+      {
+        "name": "Debug ttv.py",
+        "type": "debugpy",
+        "request": "launch",
+        "python": "/home/herles/claude/bin/python",  // Change if using global Python or Windows
+        "program": "ttv.py",  // Change if using global Python or Windows
+        "args": [
+          "--text_file",
+          "test.txt",
+          "--character-genders","Linna:female,MaDawei:male,SonJuan:male,Xiaoli:female",
+          "--language","en",
+          "--repeat","once",
+        ],
+        "console": "integratedTerminal",
+        "env": {
+          "STREAMLIT_ENV": "development"
+        }
       }
     ]
   }
