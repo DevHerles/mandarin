@@ -827,7 +827,7 @@ def main():
             font-size: 2.8em !important;
         }
         .main-title {
-            font-family: KaiTi, 'Noto Serif SC', serif !important;
+            font-family: var(--chinese-font), 'Noto Serif SC', serif !important;
             font-size: 3em;
             text-align: center;
             color: #c0392b;
@@ -851,7 +851,7 @@ def main():
             }
             .pinyin {
                 font-size: 0.3em;
-                font-family: Libertine, sans-serif;
+                font-family: var(--chinese-font), sans-serif;
                 font-weight: 500;
                 p {
                     color: #34495e;
@@ -859,7 +859,7 @@ def main():
                     align-items: center;
                     text-align: center;
                     font-size: 1.0em;
-                    font-family: Libertine, sans-serif;
+                    font-family: var(--chinese-font), sans-serif;
                 }
             }
 
@@ -1189,7 +1189,7 @@ def main():
             st.rerun()
     
     if text_analysis_mode:
-        handle_text_analysis_mode()
+        handle_text_analysis_mode(db, selected_category)
         return
 
     # Inicializar estado de sesión
@@ -1445,7 +1445,10 @@ def main():
                     else:
                         # Modo secuencial
                         if not st.session_state.current_category_words:
-                            st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter, archived_filter)
+                            st.session_state.current_category_words = db.get_words_by_category(
+                                st.session_state.current_category, 
+                                st.session_state.review_filter_state, 
+                                st.session_state.archived_filter)
                             st.session_state.current_word_index = 0
                         
                         if st.session_state.current_word_index < len(st.session_state.current_category_words):
@@ -2126,10 +2129,10 @@ def main():
                     st.rerun()
 
 
-def handle_text_analysis_mode():
+def handle_text_analysis_mode(db: VocabularyDB, selected_category: str):
     """Función para manejar el modo análisis de texto"""
     st.markdown('<h2>📝 Análisis de Texto Chino</h2>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Analiza cualquier texto chino carácter por carácter</p>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Analiza cualquier texto chino carácter por carácter o los caracteres únicos de la categoría actual</p>', unsafe_allow_html=True)
     
     # Inicializar estado para modo análisis
     if 'analyzed_text' not in st.session_state:
@@ -2137,7 +2140,7 @@ def handle_text_analysis_mode():
     if 'analysis_result' not in st.session_state:
         st.session_state.analysis_result = None
     
-    # Input de texto
+    # Input de texto manual
     col1, col2 = st.columns([4, 1])
     
     with col1:
@@ -2149,9 +2152,12 @@ def handle_text_analysis_mode():
         )
     
     with col2:
-        analyze_button = st.button("🔍 Analizar", key="analyze_text", use_container_width=True)
+        analyze_button = st.button("🔍 Analizar Texto Manual", key="analyze_text", use_container_width=True)
     
-    # Procesar análisis
+    # Botón para analizar categoría actual
+    analyze_category_button = st.button("📚 Analizar Caracteres Únicos de la Categoría Actual", key="analyze_category", use_container_width=True)
+    
+    # Procesar análisis manual
     if analyze_button and input_text.strip():
         st.session_state.analyzed_text = input_text.strip()
         chinese_count = len([c for c in input_text.strip() if '\u4e00' <= c <= '\u9fff'])
@@ -2161,6 +2167,31 @@ def handle_text_analysis_mode():
             st.session_state.analysis_result = analyze_chinese_text(input_text.strip())
             progress_bar.progress(100)
         st.rerun()
+    
+    # Procesar análisis de categoría
+    if analyze_category_button:
+        # Obtener palabras de la categoría actual
+        words = db.get_words_by_category(selected_category, review_only=False, archived_only=False)
+        
+        # Extraer caracteres chinos únicos
+        unique_chars = set()
+        for word in words:
+            for char in word['chinese']:
+                if '\u4e00' <= char <= '\u9fff':
+                    unique_chars.add(char)
+        
+        if unique_chars:
+            # Convertir a string ordenado
+            category_text = ''.join(sorted(unique_chars))
+            chinese_count = len(unique_chars)
+            
+            with st.spinner(f"🔄 Analizando {chinese_count} caracteres únicos de la categoría '{selected_category}'..."):
+                progress_bar = st.progress(0)
+                st.session_state.analysis_result = analyze_chinese_text(category_text)
+                progress_bar.progress(100)
+            st.rerun()
+        else:
+            st.warning(f"⚠️ No hay caracteres chinos en la categoría '{selected_category}'")
     
     # Mostrar resultados
     if st.session_state.analysis_result:
@@ -2328,7 +2359,7 @@ def display_text_analysis(analysis_result):
         st.markdown("### ✍️ Análisis de Caracteres y Orden de Trazos")
         
         # Crear columnas para mostrar caracteres (máximo 3 por fila)
-        chars_per_row = 3
+        chars_per_row = 4
         for i in range(0, len(analysis_result['characters']), chars_per_row):
             chunk = analysis_result['characters'][i:i + chars_per_row]
             cols = st.columns(len(chunk))
