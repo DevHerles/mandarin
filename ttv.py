@@ -181,6 +181,13 @@ def parse_arguments():
         help="Voice rate",
         default="-10%"
     )
+    parser.add_argument(
+        "--line-by-line",
+        type=str,
+        choices=["true", "false"],
+        default="false",
+        help="Save each line as a separate file with numbered suffix (1.mp3, 2.mp3, etc.)"
+    )
     return parser.parse_args()
 
 
@@ -193,6 +200,7 @@ async def main():
     repeat = args.repeat
     character_genders_str = args.character_genders
     voice_rate = args.voice_rate
+    line_by_line = args.line_by_line == "true"
 
     if not os.path.exists(input_file):
         print(f"Error: Input file '{input_file}' does not exist.")
@@ -217,15 +225,20 @@ async def main():
     archivo_mandarin = "output_mandarin.mp3"
     archivo_target = f"output_{target_language}.mp3"
     final_audio = AudioSegment.silent(duration=0)
+    line_number = 1
 
     print(
         f"🎤 Voz china por defecto: {'masculina' if voice_gender == 'hombre' else 'femenina'}"
     )
+    print(f"📁 Modo: {'Archivos separados por línea' if line_by_line else 'Un archivo final combinado'}")
 
     for line in lines:
         line = line.strip()
         if not line:  # Saltar líneas vacías
             continue
+
+        # Initialize the audio sequence for this line
+        sequence = AudioSegment.silent(duration=0)
 
         # Verificar si hay separador |
         if "|" in line:
@@ -314,9 +327,6 @@ async def main():
                         f"✓ Audio creado (traducción): '{texto_traduccion}' → {archivo_traduccion}"
                     )
 
-            # Add to final audio with longer pause between entries
-            final_audio += sequence + AudioSegment.silent(duration=2500)
-
         else:
             # Modo solo chino: buscar patrón de personaje
             character_match = re.match(r'^([^:]+):\s*(.+)$', line)
@@ -373,13 +383,23 @@ async def main():
             else:
                 sequence = audio_mandarin
 
+        # Handle line-by-line or combined output
+        if line_by_line:
+            # Save this line as a separate file
+            line_filename = f"{line_number}.mp3"
+            sequence.export(line_filename, format="mp3")
+            print(f"✓ Línea {line_number} guardada: '{line_filename}'")
+            line_number += 1
+        else:
             # Add to final audio with longer pause between entries
             final_audio += sequence + AudioSegment.silent(duration=2500)
 
-    # Save the final audio with pauses
-    output_filename = f"final_output_{input_file}_{voice_gender}_{repeat}.mp3"
-    final_audio.export(output_filename, format="mp3")
-    print(f"✓ Audio final con pausas creado: '{output_filename}'")
+    # Save the final combined audio if not in line-by-line mode
+    if not line_by_line:
+        output_filename = f"final_output_{input_file}_{voice_gender}_{repeat}.mp3"
+        final_audio.export(output_filename, format="mp3")
+        print(f"✓ Audio final con pausas creado: '{output_filename}'")
+    
     print(f"🎤 Voz por defecto utilizada: {'masculina' if voice_gender == 'hombre' else 'femenina'}")
     print(f"🔁 Repetición: {'una vez' if repeat == 'once' else 'dos veces'}")
     
