@@ -571,35 +571,53 @@ def check_access():
         
         st.stop()
 
-def create_audio_component(text: str, auto_play: bool = False):
-    """Crear componente de audio que funciona automáticamente"""
-    auto_play_script = """
-    setTimeout(() => {
-        playAudio();
-    }, 500);
-    """ if auto_play else ""
-    
+def create_audio_component(text: str, auto_play: bool = False, times: int = 1, pause_ms: int = 1000) -> str:
+    """Crear componente de audio que se reproduce varias veces con pausa entre repeticiones"""
+
+    auto_play_script = "playRepeatedAudio();" if auto_play and times > 0 else ""
+
     return f"""
     <div style="text-align: center; margin: 20px 0;">
-        <button onclick="playAudio()" 
-                style="background: #e74c3c; color: white; border: none; padding: 15px 30px; 
-                       border-radius: 25px; font-size: 1.2em; cursor: pointer; 
-                       box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s;">
-            🔊 Reproducir Audio
-        </button>
+        <button onclick="playRepeatedAudio()" style="
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;">🔊 Reproducir Audio</button>
     </div>
     <script>
-        function playAudio() {{
-            if (window.speechSynthesis) {{
+        function playRepeatedAudio() {{
+            if (!window.speechSynthesis) return;
+
+            let count = 0;
+            const maxTimes = {times};
+            const pauseBetween = {pause_ms};
+
+            function speakOnce() {{
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance('{text}');
                 utterance.lang = 'zh-CN';
                 utterance.rate = 0.7;
                 utterance.pitch = 1.0;
                 utterance.volume = 1.0;
+
+                utterance.onend = () => {{
+                    count++;
+                    if (count < maxTimes) {{
+                        setTimeout(speakOnce, pauseBetween);
+                    }}
+                }};
+
                 window.speechSynthesis.speak(utterance);
             }}
+
+            speakOnce();
         }}
+
         {auto_play_script}
     </script>
     """
