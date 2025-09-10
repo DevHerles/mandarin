@@ -571,7 +571,7 @@ def check_access():
         
         st.stop()
 
-def create_audio_component(text: str, auto_play: bool = False, times: int = 1, pause_ms: int = 1000) -> str:
+def create_audio_component(text: str, auto_play: bool = False, times: int = 1, pause_ms: int = 1000, utterance_rate: float = 0.9) -> str:
     """Crear componente de audio que se reproduce varias veces con pausa entre repeticiones"""
 
     auto_play_script = "playRepeatedAudio();" if auto_play and times > 0 else ""
@@ -601,7 +601,7 @@ def create_audio_component(text: str, auto_play: bool = False, times: int = 1, p
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance('{text}');
                 utterance.lang = 'zh-CN';
-                utterance.rate = 0.7;
+                utterance.rate = {utterance_rate};
                 utterance.pitch = 1.0;
                 utterance.volume = 1.0;
 
@@ -965,7 +965,7 @@ def main():
             background: #f39c12;
             color: white;
             border-radius: 10px;
-            font-size: 1.8em;
+            font-size: 1.0em;
             font-weight: bold;
         }
         .audio-playing {
@@ -1126,8 +1126,14 @@ def main():
             db.set_config('selected_category', selected_category)
         
         # Configuración de tiempo
-        wait_time = st.slider("⏱️ Tiempo de espera (segundos)", 1, 10, 4)
+        wait_time = st.slider("⏱️ Tiempo de espera (segundos)", 1, 10, 6)
         
+        # Configuración de repeticiones
+        repeat_count = st.slider("⏱️ Repeticiones (veces)", 1, 3, 2)
+
+        # Configuración de utterance.rate
+        utterance_rate = st.slider("⏱️ Velocidad de lectura (0.7 - 1.0)", 0.7, 1.0, 1.0, 0.1)
+  
         # Modo de estudio (cambiar a radio buttons)
         st.markdown("**📚 Modo de Estudio:**")
         study_mode = st.radio(
@@ -1188,9 +1194,6 @@ def main():
             st.markdown("---")
             st.markdown("### 📊 Estadísticas")
             st.metric("Palabras estudiadas", st.session_state.get('words_studied', 0))
-            st.metric("Categoría actual", selected_category)
-            st.metric("Modo actual", study_mode)
-            st.metric("Tiempo por fase", f"{wait_time}s")
             st.metric("Palabras para repasar", db.get_review_count(selected_category))
             st.metric("Palabras archivadas", db.get_archived_count(selected_category))
 
@@ -1272,6 +1275,8 @@ def main():
 
     # Actualizar configuraciones
     st.session_state.wait_time = wait_time
+    st.session_state.repeat_count = repeat_count
+    st.session_state.utterance_rate = utterance_rate
     st.session_state.auto_advance = auto_advance
     st.session_state.learning_mode = learning_mode
     st.session_state.writing_mode = writing_mode
@@ -1798,7 +1803,7 @@ def main():
                         """, unsafe_allow_html=True)
 
             # Auto-play audio
-            audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
+            audio_html = create_audio_component(st.session_state.current_word, auto_play=True, times=st.session_state.repeat_count, utterance_rate=st.session_state.utterance_rate)
             st.components.v1.html(audio_html, height=100)
             
             if (st.session_state.is_playing and 
@@ -1936,7 +1941,7 @@ def main():
                 """, unsafe_allow_html=True)
                 
                 # Auto-play audio
-                audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True, times=st.session_state.repeat_count, utterance_rate=st.session_state.utterance_rate)
                 st.components.v1.html(audio_html, height=100)
                 
                 # Auto-advance after delay
@@ -1983,7 +1988,7 @@ def main():
                 """, unsafe_allow_html=True)
                 
                 # Show audio button
-                audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True, times=st.session_state.repeat_count, utterance_rate=st.session_state.utterance_rate)
                 st.components.v1.html(audio_html, height=100)
                 
                 # Auto-advance to next word
@@ -2087,11 +2092,11 @@ def main():
             # Audio según la fase
             if st.session_state.phase >= 3:
                 # Fase 3: Audio automático
-                audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True, times=st.session_state.repeat_count, utterance_rate=st.session_state.utterance_rate)
                 st.components.v1.html(audio_html, height=100)
             elif st.session_state.phase >= 2:
                 # Fase 2: Botón de audio manual
-                audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=False, times=st.session_state.repeat_count, utterance_rate=st.session_state.utterance_rate)
                 st.components.v1.html(audio_html, height=100)
             
             # Lógica de avance automático (mantengo la existente sin cambios)
