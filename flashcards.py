@@ -1965,7 +1965,7 @@ def main():
                 """, unsafe_allow_html=True)
                 
                 # Show audio button
-                audio_html = create_audio_component(st.session_state.current_word, auto_play=False)
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True)
                 st.components.v1.html(audio_html, height=100)
                 
                 # Auto-advance to next word
