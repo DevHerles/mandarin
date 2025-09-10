@@ -1988,7 +1988,7 @@ def main():
                 """, unsafe_allow_html=True)
                 
                 # Show audio button
-                audio_html = create_audio_component(st.session_state.current_word, auto_play=True, times=st.session_state.repeat_count, utterance_rate=st.session_state.utterance_rate)
+                audio_html = create_audio_component(st.session_state.current_word, auto_play=True, utterance_rate=st.session_state.utterance_rate)
                 st.components.v1.html(audio_html, height=100)
                 
                 # Auto-advance to next word
