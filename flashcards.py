@@ -1138,7 +1138,7 @@ def main():
         st.markdown("**📚 Modo de Estudio:**")
         study_mode = st.radio(
             "Selecciona el modo:",
-            ["📚 Modo Aprendizaje", "🎴 Modo Flashcard", "✍️ Modo Escritura", "👂 Modo Escucha", "📝 Análisis de Texto"],
+            ["📚 Modo Aprendizaje", "🎴 Modo Flashcard", "✍️ Modo Escritura", "👂 Modo Escucha", "🗣️ Modo Dictado", "📝 Análisis de Texto"],
             index=0,  # Por defecto Modo Aprendizaje
             key="study_mode_radio"
         )
@@ -1147,11 +1147,12 @@ def main():
         learning_mode = study_mode == "📚 Modo Aprendizaje"
         writing_mode = study_mode == "✍️ Modo Escritura"
         listening_mode = study_mode == "👂 Modo Escucha"
+        dictation_mode = study_mode == "🗣️ Modo Dictado"
         flashcard_mode = study_mode == "🎴 Modo Flashcard"
         text_analysis_mode = study_mode == "📝 Análisis de Texto"
 
         # Avance automático
-        if flashcard_mode or listening_mode:
+        if flashcard_mode or listening_mode or dictation_mode:
             st.markdown("✅ 🔄 **Avance automático**")
             auto_advance = True
         else:
@@ -1258,6 +1259,10 @@ def main():
         st.session_state.review_filter_state = False
     if 'archived_filter_state' not in st.session_state:
         st.session_state.archived_filter_state = False
+    if 'dictation_mode' not in st.session_state:
+        st.session_state.dictation_mode = False
+    if 'dictation_revealed' not in st.session_state:
+        st.session_state.dictation_revealed = False
 
     # Extraer los valores booleanos
     review_filter = word_filter == "🔄 Solo palabras para repasar"
@@ -1282,6 +1287,7 @@ def main():
     st.session_state.writing_mode = writing_mode
     st.session_state.listening_mode = listening_mode
     st.session_state.flashcard_mode = flashcard_mode
+    st.session_state.dictation_mode = dictation_mode
 
     # Cambio de categoría
     if selected_category != st.session_state.current_category:
@@ -1332,6 +1338,7 @@ def main():
     
     with col1:
         if st.button("🎯 Nueva Palabra", key="new_word", use_container_width=True):
+            st.session_state.dictation_revealed = False
             if (st.session_state.current_word is None and 'session_started' not in st.session_state):
                 last_flashcard = db.get_last_flashcard()
                 if last_flashcard:
@@ -1420,6 +1427,7 @@ def main():
     
     with col3:
         if st.button("⏮️ Anterior", key="prev_phase", use_container_width=True):
+            st.session_state.dictation_revealed = False
             # Verificar si hay historial y si no estamos en la primera palabra
             if st.session_state.word_history and st.session_state.history_index > 0:
                 # Cancelar cualquier proceso automático en curso
@@ -1449,6 +1457,7 @@ def main():
     
     with col4:
         if st.button("⏭️ Siguiente", key="next_phase", use_container_width=True):
+            st.session_state.dictation_revealed = False
             if st.session_state.current_word:
                 # Cancelar cualquier proceso automático en curso
                 st.session_state.is_playing = False
@@ -1568,6 +1577,7 @@ def main():
             st.session_state.current_word = None
             st.session_state.phase_start_time = None
             st.session_state.words_studied = 0
+            st.session_state.dictation_revealed = False
             st.rerun()
 
     with col6:
@@ -2023,6 +2033,168 @@ def main():
                             st.session_state.phase = 1  # Back to listening phase
                             st.session_state.phase_start_time = time.time()
                             st.rerun()
+        
+        # NUEVO: UI específica del Modo Dictado
+        elif st.session_state.dictation_mode:
+            st.markdown("""
+            <div class="phase-indicator phase-2">
+                🗣️ Modo Dictado: Escucha el audio, luego revela y califica tu respuesta
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 1) Reproducir audio (sin mostrar texto al inicio)
+            audio_html = create_audio_component(
+                st.session_state.current_data['chinese'],
+                auto_play=True,
+                times=st.session_state.repeat_count + 1,
+                utterance_rate=st.session_state.utterance_rate
+            )
+            st.components.v1.html(audio_html, height=100)
+
+            # 2) Botón para revelar/ocultar texto
+            colA, colB, colC = st.columns([1,1,1])
+            with colA:
+                toggle_label = "👁️ Mostrar texto" if not st.session_state.dictation_revealed else "🙈 Ocultar texto"
+                if st.button(toggle_label, key="dictation_toggle"):
+                    st.session_state.dictation_revealed = not st.session_state.dictation_revealed
+                    st.rerun()
+
+            # 3) Mostrar el texto solo si fue revelado
+            if st.session_state.dictation_revealed:
+                st.markdown(f"""
+                <div class="chinese-word" style="position: relative;">
+                    <div class="pinyin">
+                        {st.session_state.current_data['pinyin']}
+                    </div>
+                    {st.session_state.current_data['chinese']}
+                    <div class="translation">
+                        {st.session_state.current_data['spanish']}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Info adicional (si tienes explicación y traducción literal)
+                lt = st.session_state.current_data.get('literal_translation', '')
+                ex = st.session_state.current_data.get('explanation', '')
+                colX, colY = st.columns(2)
+                if lt:
+                    with colX:
+                        st.markdown(f"""
+                        <div class="literal-translation">
+                            <h5>🔤 Traducción Literal:</h5>
+                            <p>{lt}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                if ex:
+                    with colY:
+                        st.markdown(f"""
+                        <div class="explanation">
+                            <h5>💡 Explicación:</h5>
+                            <p>{ex}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+            # 4) Botones de calificación: Correcto / Incorrecto
+            with colB:
+                if st.button("✅ Correcto", key="dictation_correct", use_container_width=True):
+                    # Archivar si fue correcta
+                    db.toggle_word_archived(
+                        st.session_state.current_data['chinese'],
+                        st.session_state.current_data['pinyin']
+                    )
+                    # Opcional: quitar de repaso si estaba marcado
+                    # db.toggle_word_review(... )  # solo si quieres “desmarcar repaso” al acertar
+
+                    # Pasar a la siguiente tarjeta (mismo flujo que usas en Next)
+                    st.session_state.words_studied += 1
+                    st.session_state.dictation_revealed = False
+                    # Reutiliza tu lógica de selección (aleatorio/secuencial)
+                    if st.session_state.random_order:
+                        word_data = db.get_random_word(
+                            st.session_state.current_category,
+                            review_only=st.session_state.review_filter_state,
+                            archived_only=st.session_state.archived_filter
+                        )
+                    else:
+                        if not st.session_state.current_category_words:
+                            st.session_state.current_category_words = db.get_words_by_category(
+                                st.session_state.current_category,
+                                st.session_state.review_filter_state,
+                                st.session_state.archived_filter
+                            )
+                            st.session_state.current_word_index = 0
+                        if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                            word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                            st.session_state.current_word_index += 1
+                        else:
+                            st.session_state.current_word_index = 0
+                            word_data = st.session_state.current_category_words[st.session_state.current_word_index] if st.session_state.current_category_words else None
+
+                    if word_data:
+                        st.session_state.word_history.append(word_data)
+                        st.session_state.history_index = len(st.session_state.word_history) - 1
+                        st.session_state.current_word = word_data['chinese']
+                        st.session_state.current_data = word_data
+                        st.session_state.phase = 1
+                        db.save_last_flashcard(word_data, 1)
+                    st.rerun()
+
+            with colC:
+                if st.button("❌ Incorrecto", key="dictation_incorrect", use_container_width=True):
+                    # Marcar para repasar si fue incorrecta
+                    # (asegura needs_review=1; si ya estaba, toggle lo invierte, por lo que mejor forzar “1”)
+                    if not db.get_word_review_status(
+                        st.session_state.current_data['chinese'],
+                        st.session_state.current_data['pinyin']
+                    ):
+                        db.toggle_word_review(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+
+                    # Opcional: garantizar NO archivada
+                    # Si estuviera archivada, desarchivar:
+                    if db.get_word_archived_status(
+                        st.session_state.current_data['chinese'],
+                        st.session_state.current_data['pinyin']
+                    ):
+                        db.toggle_word_archived(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+
+                    # Avanzar a la siguiente tarjeta
+                    st.session_state.dictation_revealed = False
+                    if st.session_state.random_order:
+                        word_data = db.get_random_word(
+                            st.session_state.current_category,
+                            review_only=st.session_state.review_filter_state,
+                            archived_only=st.session_state.archived_filter
+                        )
+                    else:
+                        if not st.session_state.current_category_words:
+                            st.session_state.current_category_words = db.get_words_by_category(
+                                st.session_state.current_category,
+                                st.session_state.review_filter_state,
+                                st.session_state.archived_filter
+                            )
+                            st.session_state.current_word_index = 0
+                        if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                            word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                            st.session_state.current_word_index += 1
+                        else:
+                            st.session_state.current_word_index = 0
+                            word_data = st.session_state.current_category_words[st.session_state.current_word_index] if st.session_state.current_category_words else None
+
+                    if word_data:
+                        st.session_state.word_history.append(word_data)
+                        st.session_state.history_index = len(st.session_state.word_history) - 1
+                        st.session_state.current_word = word_data['chinese']
+                        st.session_state.current_data = word_data
+                        st.session_state.phase = 1
+                        db.save_last_flashcard(word_data, 1)
+                    st.rerun()
+
         else:
             # STANDARD FLASHCARD MODE - COPIA EXACTA DEL DISEÑO DE MODO APRENDIZAJE
             # Mostrar indicador de fase
