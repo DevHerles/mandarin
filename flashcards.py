@@ -1132,7 +1132,7 @@ def main():
         repeat_count = st.slider("⏱️ Repeticiones (veces)", 1, 3, 2)
 
         # Configuración de utterance.rate
-        utterance_rate = st.slider("⏱️ Velocidad de lectura (0.7 - 1.0)", 0.7, 1.0, 1.0, 0.1)
+        utterance_rate = st.slider("⏱️ Velocidad de lectura (0.6 - 1.0)", 0.6, 1.0, 1.0, 0.1)
   
         # Modo de estudio (cambiar a radio buttons)
         st.markdown("**📚 Modo de Estudio:**")
@@ -2103,11 +2103,16 @@ def main():
                         st.session_state.current_data['pinyin']
                     )
                     # Opcional: quitar de repaso si estaba marcado
-                    # db.toggle_word_review(... )  # solo si quieres “desmarcar repaso” al acertar
+                    # db.toggle_word_review(... )  # solo si quieres "desmarcar repaso" al acertar
 
                     # Pasar a la siguiente tarjeta (mismo flujo que usas en Next)
                     st.session_state.words_studied += 1
                     st.session_state.dictation_revealed = False
+                    
+                    # ACTUALIZAR LA LISTA DESPUÉS DE ARCHIVAR
+                    # Limpiar la lista actual para forzar recarga
+                    st.session_state.current_category_words = []
+                    
                     # Reutiliza tu lógica de selección (aleatorio/secuencial)
                     if st.session_state.random_order:
                         word_data = db.get_random_word(
@@ -2116,19 +2121,29 @@ def main():
                             archived_only=st.session_state.archived_filter
                         )
                     else:
-                        if not st.session_state.current_category_words:
-                            st.session_state.current_category_words = db.get_words_by_category(
-                                st.session_state.current_category,
-                                st.session_state.review_filter_state,
-                                st.session_state.archived_filter
-                            )
+                        # Recargar la lista actualizada sin la palabra archivada
+                        st.session_state.current_category_words = db.get_words_by_category(
+                            st.session_state.current_category,
+                            st.session_state.review_filter_state,
+                            st.session_state.archived_filter
+                        )
+                        
+                        # Ajustar el índice si es necesario
+                        if st.session_state.current_word_index >= len(st.session_state.current_category_words):
                             st.session_state.current_word_index = 0
-                        if st.session_state.current_word_index < len(st.session_state.current_category_words):
-                            word_data = st.session_state.current_category_words[st.session_state.current_word_index]
-                            st.session_state.current_word_index += 1
+                        
+                        # Obtener la siguiente palabra
+                        if st.session_state.current_category_words:
+                            if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                                word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                                st.session_state.current_word_index += 1
+                            else:
+                                st.session_state.current_word_index = 0
+                                word_data = st.session_state.current_category_words[st.session_state.current_word_index] if st.session_state.current_category_words else None
+                                if word_data:
+                                    st.session_state.current_word_index += 1
                         else:
-                            st.session_state.current_word_index = 0
-                            word_data = st.session_state.current_category_words[st.session_state.current_word_index] if st.session_state.current_category_words else None
+                            word_data = None
 
                     if word_data:
                         st.session_state.word_history.append(word_data)
@@ -2137,6 +2152,11 @@ def main():
                         st.session_state.current_data = word_data
                         st.session_state.phase = 1
                         db.save_last_flashcard(word_data, 1)
+                    else:
+                        # Si no hay más palabras, mostrar mensaje
+                        st.success("🎉 ¡Has completado todas las palabras disponibles en esta categoría!")
+                        st.session_state.current_word = None
+                        st.session_state.current_data = None
                     st.rerun()
 
             with colC:
