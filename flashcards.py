@@ -1330,6 +1330,20 @@ def main():
     st.markdown('<h1 class="main-title">学习中文 🎴</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Flashcards para aprender vocabulario chino</p>', unsafe_allow_html=True)
     
+    if st.session_state.learning_mode or st.session_state.writing_mode:
+        # LEARNING MODE o WRITING MODE: Show everything at once
+        if st.session_state.writing_mode:
+            st.markdown("""
+            <div class="phase-indicator phase-1">
+                ✍️ Modo Escritura: Estudia la palabra y practica los trazos
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="phase-indicator phase-1">
+                📚 Modo Aprendizaje: Estudia la palabra completa
+            </div>
+            """, unsafe_allow_html=True)
     # Controles principales
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -1599,21 +1613,6 @@ def main():
                 🔄 Para Repasar
             </div>
             """ if is_marked else ""
-        
-        if st.session_state.learning_mode or st.session_state.writing_mode:
-            # LEARNING MODE o WRITING MODE: Show everything at once
-            if st.session_state.writing_mode:
-                st.markdown("""
-                <div class="phase-indicator phase-1">
-                    ✍️ Modo Escritura: Estudia la palabra y practica los trazos
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <div class="phase-indicator phase-1">
-                    📚 Modo Aprendizaje: Estudia la palabra completa
-                </div>
-                """, unsafe_allow_html=True)
                     
             # Show Chinese word
             if st.session_state.writing_mode:
