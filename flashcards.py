@@ -1058,19 +1058,19 @@ def main():
         }
         @media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
             .chinese-word {
-                font-size: 3.8em; /* slightly larger */
+                font-size: 3.6em;
                 padding: 12px;
                 background: #FFFFFF;
             }
 
             .chinese-word .pinyin {
-                font-size: 0.35em;
+                font-size: 0.34em;
                 font-family: Libertine, sans-serif;
                 font-weight: 500;
             }
 
             .chinese-word .translation {
-                font-size: 0.25em;
+                font-size: 0.23em;
                 font-family: 'Montserrat', sans-serif;
             }
 
@@ -1325,6 +1325,62 @@ def main():
     st.markdown('<h1 class="main-title">学习中文 🎴</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Flashcards para aprender vocabulario chino</p>', unsafe_allow_html=True)
     
+    if st.session_state.learning_mode or st.session_state.writing_mode:
+        # LEARNING MODE o WRITING MODE: Show everything at once
+        if st.session_state.writing_mode:
+            st.markdown("""
+            <div class="phase-indicator phase-1">
+                ✍️ Modo Escritura: Estudia la palabra y practica los trazos
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="phase-indicator phase-1">
+                📚 Modo Aprendizaje: Estudia la palabra completa
+            </div>
+            """, unsafe_allow_html=True)
+
+    elif st.session_state.listening_mode:
+        # LISTENING MODE: Special flow for listening practice
+        if st.session_state.phase == 1:
+            # Phase 1: Just play audio with instructions
+            st.markdown("""
+            <div class="phase-indicator phase-1">
+                👂 Modo Escucha: Escucha atentamente la pronunciación
+            </div>
+            <div class="listening-mode">
+                <h2>👂 Escucha la pronunciación</h2>
+                <p>Presta atención al sonido y trata de identificar la palabra</p>
+            </div>
+            """, unsafe_allow_html=True)
+        elif st.session_state.phase == 2:
+            # Phase 2: Show the full flashcard
+            st.markdown("""
+            <div class="phase-indicator phase-2">
+                👂 Modo Escucha: Aquí está la palabra completa
+            </div>
+            """, unsafe_allow_html=True)
+    elif st.session_state.dictation_mode:
+            st.markdown("""
+            <div class="phase-indicator phase-2">
+                🗣️ Modo Dictado: Escucha el audio, luego revela y califica tu respuesta
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        phase_info = {
+            1: {"text": "🎯 Fase 1: Identifica la palabra", "class": "phase-1"},
+            2: {"text": "📝 Fase 2: Pinyin y traducción", "class": "phase-2"},
+            3: {"text": "🔊 Fase 3: Escucha la pronunciación", "class": "phase-3"}
+        }
+        
+        if st.session_state.phase > 0:
+            current_phase = phase_info[st.session_state.phase]
+            st.markdown(f"""
+            <div class="phase-indicator {current_phase['class']}">
+                {current_phase['text']}
+            </div>
+            """, unsafe_allow_html=True)
+
     # Controles principales
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     
@@ -1579,57 +1635,6 @@ def main():
             st.session_state.words_studied = 0
             st.session_state.dictation_revealed = False
             st.rerun()
-
-    with col6:
-        # Mover el checkbox de orden aleatorio aquí si hay espacio, o crear nueva fila
-        if st.session_state.current_word and st.session_state.current_data:
-            if st.session_state.archived_filter:
-                # En modo archivadas, mostrar botón de desarchivar
-                if st.button("📤 Desarchivar", key="unarchive_word", use_container_width=True):
-                    new_state = db.toggle_word_archived(
-                        st.session_state.current_data['chinese'],
-                        st.session_state.current_data['pinyin']
-                    )
-                    st.success("📤 Palabra desarchivada")
-                    st.session_state.current_category_words = []
-                    time.sleep(0.5)
-                    st.rerun()
-            else:
-                # En otros modos, mostrar botones de repaso y archivar
-                col6a, col6b = st.columns(2)
-                
-                with col6a:
-                    # Botón de repaso
-                    is_marked = db.get_word_review_status(
-                        st.session_state.current_data['chinese'], 
-                        st.session_state.current_data['pinyin']
-                    )
-                    button_text = "✅ Quitar Repaso" if is_marked else "🔄 Marcar Repaso"
-                    
-                    if st.button(button_text, key="toggle_review", use_container_width=True):
-                        new_state = db.toggle_word_review(
-                            st.session_state.current_data['chinese'],
-                            st.session_state.current_data['pinyin']
-                        )
-                        
-                        if new_state:
-                            st.success("✅ Palabra marcada para repasar")
-                        else:
-                            st.success("❌ Palabra quitada de repaso")
-                        
-                        time.sleep(0.5)
-                        st.rerun()
-                
-                with col6b:
-                    # Botón de archivar
-                    if st.button("📦 Archivar", key="archive_word", use_container_width=True):
-                        new_state = db.toggle_word_archived(
-                            st.session_state.current_data['chinese'],
-                            st.session_state.current_data['pinyin']
-                        )
-                        st.success("📦 Palabra archivada")
-                        time.sleep(0.5)
-                        st.rerun()
     
     # Área principal de flashcard
     if st.session_state.current_word is None:
@@ -1655,20 +1660,6 @@ def main():
             """ if is_marked else ""
         
         if st.session_state.learning_mode or st.session_state.writing_mode:
-            # LEARNING MODE o WRITING MODE: Show everything at once
-            if st.session_state.writing_mode:
-                st.markdown("""
-                <div class="phase-indicator phase-1">
-                    ✍️ Modo Escritura: Estudia la palabra y practica los trazos
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <div class="phase-indicator phase-1">
-                    📚 Modo Aprendizaje: Estudia la palabra completa
-                </div>
-                """, unsafe_allow_html=True)
-                    
             # Show Chinese word
             if st.session_state.writing_mode:
                 # Modo escritura: integrar stroke order viewer
@@ -1939,17 +1930,6 @@ def main():
         elif st.session_state.listening_mode:
             # LISTENING MODE: Special flow for listening practice
             if st.session_state.phase == 1:
-                # Phase 1: Just play audio with instructions
-                st.markdown("""
-                <div class="phase-indicator phase-1">
-                    👂 Modo Escucha: Escucha atentamente la pronunciación
-                </div>
-                <div class="listening-mode">
-                    <h2>👂 Escucha la pronunciación</h2>
-                    <p>Presta atención al sonido y trata de identificar la palabra</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
                 # Auto-play audio
                 audio_html = create_audio_component(st.session_state.current_word, auto_play=True, times=st.session_state.repeat_count, utterance_rate=st.session_state.utterance_rate)
                 st.components.v1.html(audio_html, height=100)
@@ -1977,13 +1957,6 @@ def main():
                         st.rerun()
                         
             elif st.session_state.phase == 2:
-                # Phase 2: Show the full flashcard
-                st.markdown("""
-                <div class="phase-indicator phase-2">
-                    👂 Modo Escucha: Aquí está la palabra completa
-                </div>
-                """, unsafe_allow_html=True)
-                
                 # Show full flashcard
                 st.markdown(f"""
                 <div class="chinese-word">
@@ -2037,11 +2010,11 @@ def main():
         # NUEVO: UI específica del Modo Dictado
         elif st.session_state.dictation_mode:
             st.markdown("""
-            <div class="phase-indicator phase-2">
-                🗣️ Modo Dictado: Escucha el audio, luego revela y califica tu respuesta
+            <div class="listening-mode">
+                <h2>🗣️ Escucha el audio, luego revela y califica tu respuesta</h2>
+                <p>Presta atención al sonido y trata de identificar el enunciado</p>
             </div>
             """, unsafe_allow_html=True)
-
             # 1) Reproducir audio (sin mostrar texto al inicio)
             audio_html = create_audio_component(
                 st.session_state.current_data['chinese'],
@@ -2215,23 +2188,7 @@ def main():
                         db.save_last_flashcard(word_data, 1)
                     st.rerun()
 
-        else:
-            # STANDARD FLASHCARD MODE - COPIA EXACTA DEL DISEÑO DE MODO APRENDIZAJE
-            # Mostrar indicador de fase
-            phase_info = {
-                1: {"text": "🎯 Fase 1: Identifica la palabra", "class": "phase-1"},
-                2: {"text": "📝 Fase 2: Pinyin y traducción", "class": "phase-2"},
-                3: {"text": "🔊 Fase 3: Escucha la pronunciación", "class": "phase-3"}
-            }
-            
-            if st.session_state.phase > 0:
-                current_phase = phase_info[st.session_state.phase]
-                st.markdown(f"""
-                <div class="phase-indicator {current_phase['class']}">
-                    {current_phase['text']}
-                </div>
-                """, unsafe_allow_html=True)
-            
+        else:          
             # Verificar si la palabra está marcada para repaso
             is_marked = False
             if st.session_state.current_data:
@@ -2343,6 +2300,55 @@ def main():
                     
                     st.rerun()
 
+        # Mover el checkbox de orden aleatorio aquí si hay espacio, o crear nueva fila
+        if st.session_state.current_word and st.session_state.current_data and not st.session_state.dictation_mode:
+            if st.session_state.archived_filter:
+                # En modo archivadas, mostrar botón de desarchivar
+                if st.button("📤 Desarchivar", key="unarchive_word", use_container_width=True):
+                    new_state = db.toggle_word_archived(
+                        st.session_state.current_data['chinese'],
+                        st.session_state.current_data['pinyin']
+                    )
+                    st.success("📤 Palabra desarchivada")
+                    st.session_state.current_category_words = []
+                    time.sleep(0.5)
+                    st.rerun()
+            else:
+                # En otros modos, mostrar botones de repaso y archivar
+                col6a, col6b = st.columns(2)
+                
+                with col6a:
+                    # Botón de repaso
+                    is_marked = db.get_word_review_status(
+                        st.session_state.current_data['chinese'], 
+                        st.session_state.current_data['pinyin']
+                    )
+                    button_text = "✅ Quitar Repaso" if is_marked else "🔄 Marcar Repaso"
+                    
+                    if st.button(button_text, key="toggle_review", use_container_width=True):
+                        new_state = db.toggle_word_review(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+                        
+                        if new_state:
+                            st.success("✅ Palabra marcada para repasar")
+                        else:
+                            st.success("❌ Palabra quitada de repaso")
+                        
+                        time.sleep(0.5)
+                        st.rerun()
+                
+                with col6b:
+                    # Botón de archivar
+                    if st.button("📦 Archivar", key="archive_word", use_container_width=True):
+                        new_state = db.toggle_word_archived(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+                        st.success("📦 Palabra archivada")
+                        time.sleep(0.5)
+                        st.rerun()
 
 def handle_text_analysis_mode(db: VocabularyDB, selected_category: str):
     """Función para manejar el modo análisis de texto"""
