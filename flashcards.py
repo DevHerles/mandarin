@@ -1151,6 +1151,58 @@ def main():
         flashcard_mode = study_mode == "🎴 Modo Flashcard"
         text_analysis_mode = study_mode == "📝 Análisis de Texto"
 
+        # Inicializar estado de sesión
+        if 'current_word' not in st.session_state:
+            st.session_state.current_word = None
+        if 'current_data' not in st.session_state:
+            st.session_state.current_data = None
+        if 'phase' not in st.session_state:
+            st.session_state.phase = 0
+        if 'is_playing' not in st.session_state:
+            st.session_state.is_playing = False
+        if 'phase_start_time' not in st.session_state:
+            st.session_state.phase_start_time = None
+        if 'words_studied' not in st.session_state:
+            st.session_state.words_studied = 0
+        if 'current_category' not in st.session_state:
+            st.session_state.current_category = selected_category
+        if 'last_update' not in st.session_state:
+            st.session_state.last_update = time.time()
+        if 'learning_mode' not in st.session_state:
+            st.session_state.learning_mode = learning_mode
+        if 'word_history' not in st.session_state:
+            st.session_state.word_history = []
+        if 'history_index' not in st.session_state:
+            st.session_state.history_index = -1
+        if 'writing_mode' not in st.session_state:
+            st.session_state.writing_mode = writing_mode
+        if 'listening_mode' not in st.session_state:
+            st.session_state.listening_mode = listening_mode
+        if 'flashcard_mode' not in st.session_state:
+            st.session_state.flashcard_mode = flashcard_mode
+        if 'text_analysis_mode' not in st.session_state:
+            st.session_state.text_analysis_mode = text_analysis_mode
+        if 'random_order' not in st.session_state:
+            st.session_state.random_order = False
+        if 'current_word_index' not in st.session_state:
+            st.session_state.current_word_index = 0
+        if 'current_category_words' not in st.session_state:
+            st.session_state.current_category_words = []
+        if 'review_filter' not in st.session_state:
+            st.session_state.review_filter = False
+        if 'archived_filter' not in st.session_state:
+            st.session_state.archived_filter = False
+        if 'review_filter_state' not in st.session_state:
+            st.session_state.review_filter_state = False
+        if 'archived_filter_state' not in st.session_state:
+            st.session_state.archived_filter_state = False
+        if 'dictation_mode' not in st.session_state:
+            st.session_state.dictation_mode = False
+        if 'dictation_revealed' not in st.session_state:
+            st.session_state.dictation_revealed = False
+        if 'auto_advance' not in st.session_state:
+            st.session_state.auto_advance = False
+
         # Avance automático
         if flashcard_mode or listening_mode or dictation_mode:
             st.markdown("✅ 🔄 **Avance automático**")
@@ -1160,7 +1212,13 @@ def main():
                 st.markdown("❌ 🔄 **Avance automático**")
                 auto_advance = False
             else:
-                auto_advance = st.checkbox("🔄 Avance automático", False)
+                auto_advance = st.checkbox("🔄 Avance automático", st.session_state.auto_advance)
+
+        random_order = st.checkbox(
+            "🔀 Orden aleatorio", 
+            value=st.session_state.random_order,
+            help="Mostrar palabras en orden aleatorio o secuencial"
+        )
 
         st.markdown("**📚 Filtro de Palabras:**")
         word_filter = st.radio(
@@ -1214,56 +1272,6 @@ def main():
         handle_text_analysis_mode(db, selected_category)
         return
 
-    # Inicializar estado de sesión
-    if 'current_word' not in st.session_state:
-        st.session_state.current_word = None
-    if 'current_data' not in st.session_state:
-        st.session_state.current_data = None
-    if 'phase' not in st.session_state:
-        st.session_state.phase = 0
-    if 'is_playing' not in st.session_state:
-        st.session_state.is_playing = False
-    if 'phase_start_time' not in st.session_state:
-        st.session_state.phase_start_time = None
-    if 'words_studied' not in st.session_state:
-        st.session_state.words_studied = 0
-    if 'current_category' not in st.session_state:
-        st.session_state.current_category = selected_category
-    if 'last_update' not in st.session_state:
-        st.session_state.last_update = time.time()
-    if 'learning_mode' not in st.session_state:
-        st.session_state.learning_mode = learning_mode
-    if 'word_history' not in st.session_state:
-        st.session_state.word_history = []
-    if 'history_index' not in st.session_state:
-        st.session_state.history_index = -1
-    if 'writing_mode' not in st.session_state:
-        st.session_state.writing_mode = writing_mode
-    if 'listening_mode' not in st.session_state:
-        st.session_state.listening_mode = listening_mode
-    if 'flashcard_mode' not in st.session_state:
-        st.session_state.flashcard_mode = flashcard_mode
-    if 'text_analysis_mode' not in st.session_state:
-        st.session_state.text_analysis_mode = text_analysis_mode
-    if 'random_order' not in st.session_state:
-        st.session_state.random_order = False
-    if 'current_word_index' not in st.session_state:
-        st.session_state.current_word_index = 0
-    if 'current_category_words' not in st.session_state:
-        st.session_state.current_category_words = []
-    if 'review_filter' not in st.session_state:
-        st.session_state.review_filter = False
-    if 'archived_filter' not in st.session_state:
-        st.session_state.archived_filter = False
-    if 'review_filter_state' not in st.session_state:
-        st.session_state.review_filter_state = False
-    if 'archived_filter_state' not in st.session_state:
-        st.session_state.archived_filter_state = False
-    if 'dictation_mode' not in st.session_state:
-        st.session_state.dictation_mode = False
-    if 'dictation_revealed' not in st.session_state:
-        st.session_state.dictation_revealed = False
-
     # Extraer los valores booleanos
     review_filter = word_filter == "🔄 Solo palabras para repasar"
     archived_filter = word_filter == "📦 Solo palabras archivadas"
@@ -1283,6 +1291,7 @@ def main():
     st.session_state.repeat_count = repeat_count
     st.session_state.utterance_rate = utterance_rate
     st.session_state.auto_advance = auto_advance
+    st.session_state.random_order = random_order
     st.session_state.learning_mode = learning_mode
     st.session_state.writing_mode = writing_mode
     st.session_state.listening_mode = listening_mode
@@ -1382,107 +1391,160 @@ def main():
             """, unsafe_allow_html=True)
 
     # Controles principales
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    
-    # Checkbox para orden aleatorio o secuencial
-    with col6:
-        st.session_state.random_order = st.checkbox(
-            "🔀 Orden aleatorio", 
-            value=st.session_state.random_order,
-            help="Mostrar palabras en orden aleatorio o secuencial"
-        )
-    
+    col1, col2, col3, col4 = st.columns(4)
+
     with col1:
-        if st.button("🎯 Nueva Palabra", key="new_word", use_container_width=True):
+        # Botón unificado que maneja múltiples estados
+        if st.session_state.current_word is None:
+            button_text = "🎯 Iniciar"
+            button_key = "start_session"
+        elif st.session_state.is_playing:
+            button_text = "⏸️ Pausar"
+            button_key = "pause_session"
+        else:
+            button_text = "▶️ Continuar"
+            button_key = "resume_session"
+        
+        if st.button(button_text, key=button_key, use_container_width=True):
             st.session_state.dictation_revealed = False
-            if (st.session_state.current_word is None and 'session_started' not in st.session_state):
-                last_flashcard = db.get_last_flashcard()
-                if last_flashcard:
-                    # Restaurar el último flashcard
-                    word_data = last_flashcard['word_data']
-                    saved_phase = last_flashcard['phase']
+            
+            if st.session_state.current_word is None:
+                # INICIAR SESIÓN - Restaurar último flashcard si existe
+                if 'session_started' not in st.session_state:
+                    last_flashcard = db.get_last_flashcard()
+                    if last_flashcard:
+                        # Restaurar el último flashcard
+                        word_data = last_flashcard['word_data']
+                        saved_phase = last_flashcard['phase']
+                        
+                        # Guardar en historial
+                        st.session_state.word_history.append(word_data)
+                        st.session_state.history_index = len(st.session_state.word_history) - 1
+                        
+                        st.session_state.current_word = word_data['chinese']
+                        st.session_state.current_data = word_data
+                        
+                        # Restaurar la fase guardada
+                        if st.session_state.learning_mode:
+                            st.session_state.phase = 3
+                        else:
+                            st.session_state.phase = saved_phase
+                        
+                        st.session_state.phase_start_time = time.time()
+                        st.session_state.is_playing = True
+                        st.session_state.session_started = True
+                        
+                        st.success(f"✅ Sesión restaurada: {word_data['chinese']}")
+                        st.rerun()
+                
+                # Obtener nueva palabra según el modo seleccionado
+                if st.session_state.random_order:
+                    word_data = db.get_random_word(st.session_state.current_category, 
+                                            review_only=st.session_state.review_filter_state, 
+                                            archived_only=st.session_state.archived_filter)
+                else:
+                    # Modo secuencial
+                    if not st.session_state.current_category_words:
+                        st.session_state.current_category_words = db.get_words_by_category(
+                            st.session_state.current_category, 
+                            st.session_state.review_filter_state, 
+                            st.session_state.archived_filter)
+                        st.session_state.current_word_index = 0
                     
-                    # Guardar en historial
+                    if st.session_state.current_word_index < len(st.session_state.current_category_words):
+                        word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                        st.session_state.current_word_index += 1
+                    else:
+                        st.session_state.current_word_index = 0
+                        if st.session_state.current_category_words:
+                            word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+                            st.session_state.current_word_index += 1
+                        else:
+                            word_data = None
+                
+                if word_data:
+                    # Inicializar nueva sesión
                     st.session_state.word_history.append(word_data)
                     st.session_state.history_index = len(st.session_state.word_history) - 1
                     
                     st.session_state.current_word = word_data['chinese']
                     st.session_state.current_data = word_data
                     
-                    # Restaurar la fase guardada
-                    if st.session_state.learning_mode:
-                        st.session_state.phase = 3  # En modo aprendizaje, mostrar todo
+                    if st.session_state.learning_mode or st.session_state.writing_mode:
+                        st.session_state.phase = 1
                     else:
-                        st.session_state.phase = saved_phase
-                    
+                        st.session_state.phase = 1
+                        
                     st.session_state.phase_start_time = time.time()
                     st.session_state.is_playing = True
                     st.session_state.session_started = True
                     
-                    st.success(f"✅ Flashcard anterior restaurado: {word_data['chinese']}")
+                    # Guardar el nuevo flashcard
+                    db.save_last_flashcard(word_data, st.session_state.phase)
                     st.rerun()
-            
-            # Lógica para obtener nueva palabra según el modo seleccionado
-            if st.session_state.random_order:
-                # Modo aleatorio
-                word_data = db.get_random_word(st.session_state.current_category, 
-                                         review_only=st.session_state.review_filter_state, 
-                                         archived_only=st.session_state.archived_filter)
-
             else:
-                # Modo secuencial
-                if not st.session_state.current_category_words:
-                    # Cargar todas las palabras de la categoría si no están cargadas
-                    st.session_state.current_category_words = db.get_words_by_category(
-                        st.session_state.current_category, 
-                        st.session_state.review_filter_state, 
-                        st.session_state.archived_filter)
-                    st.session_state.current_word_index = 0
-                
-                if st.session_state.current_word_index < len(st.session_state.current_category_words):
-                    word_data = st.session_state.current_category_words[st.session_state.current_word_index]
-                    st.session_state.current_word_index += 1
-                else:
-                    # Si llegamos al final, volvemos al principio
-                    st.session_state.current_word_index = 0
-                    if st.session_state.current_category_words:
-                        word_data = st.session_state.current_category_words[st.session_state.current_word_index]
-                        st.session_state.current_word_index += 1
-                    else:
-                        word_data = None
-            
-            if word_data:
-                # Guardar en historial
-                st.session_state.word_history.append(word_data)
-                st.session_state.history_index = len(st.session_state.word_history) - 1
-                
-                st.session_state.current_word = word_data['chinese']
-                st.session_state.current_data = word_data
-                if st.session_state.learning_mode or st.session_state.writing_mode:
-                    st.session_state.phase = 1
-                    if st.session_state.phase_start_time is None:
-                        st.session_state.phase_start_time = time.time()
-                else:
-                    st.session_state.phase = 1
-                st.session_state.phase_start_time = time.time()
-                st.session_state.is_playing = True
-                st.session_state.session_started = True
-                
-                # Guardar el nuevo flashcard
-                db.save_last_flashcard(word_data, st.session_state.phase)
-                st.rerun()
-    
-    with col2:
-        play_text = "⏸️ Pausar" if st.session_state.is_playing else "▶️ Iniciar"
-        if st.button(play_text, key="play_pause", use_container_width=True):
-            if st.session_state.current_word:
+                # PAUSAR/CONTINUAR sesión existente
                 st.session_state.is_playing = not st.session_state.is_playing
                 if st.session_state.is_playing:
                     st.session_state.phase_start_time = time.time()
                 st.rerun()
-    
-    with col3:
-        if st.button("⏮️ Anterior", key="prev_phase", use_container_width=True):
+
+    # with col2:
+    #     # Botón de nueva palabra (solo cuando ya hay una palabra activa)
+    #     if st.session_state.current_word is not None:
+    #         if st.button("🔄 Nueva Palabra", key="new_word", use_container_width=True):
+    #             st.session_state.dictation_revealed = False
+                
+    #             # Lógica de selección de palabras según el modo
+    #             if st.session_state.random_order:
+    #                 word_data = db.get_random_word(st.session_state.current_category, 
+    #                                         review_only=st.session_state.review_filter_state, 
+    #                                         archived_only=st.session_state.archived_filter)
+    #             else:
+    #                 # Modo secuencial
+    #                 if not st.session_state.current_category_words:
+    #                     st.session_state.current_category_words = db.get_words_by_category(
+    #                         st.session_state.current_category, 
+    #                         st.session_state.review_filter_state, 
+    #                         st.session_state.archived_filter)
+    #                     st.session_state.current_word_index = 0
+                    
+    #                 if st.session_state.current_word_index < len(st.session_state.current_category_words):
+    #                     word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+    #                     st.session_state.current_word_index += 1
+    #                 else:
+    #                     st.session_state.current_word_index = 0
+    #                     if st.session_state.current_category_words:
+    #                         word_data = st.session_state.current_category_words[st.session_state.current_word_index]
+    #                         st.session_state.current_word_index += 1
+    #                     else:
+    #                         word_data = None
+                
+    #             if word_data:
+    #                 # Guardar en historial
+    #                 st.session_state.word_history.append(word_data)
+    #                 st.session_state.history_index = len(st.session_state.word_history) - 1
+                    
+    #                 st.session_state.current_word = word_data['chinese']
+    #                 st.session_state.current_data = word_data
+                    
+    #                 if st.session_state.learning_mode or st.session_state.writing_mode:
+    #                     st.session_state.phase = 1
+    #                 else:
+    #                     st.session_state.phase = 1
+                        
+    #                 st.session_state.phase_start_time = time.time()
+    #                 st.session_state.is_playing = True
+                    
+    #                 # Guardar el nuevo flashcard
+    #                 db.save_last_flashcard(word_data, st.session_state.phase)
+    #                 st.rerun()
+    #     else:
+    #         # Placeholder cuando no hay palabra activa
+    #         st.markdown('<div style="height: 38px;"></div>', unsafe_allow_html=True)
+
+    with col2:
+        if st.button("⬅️ Anterior", key="prev_phase", use_container_width=True):
             st.session_state.dictation_revealed = False
             # Verificar si hay historial y si no estamos en la primera palabra
             if st.session_state.word_history and st.session_state.history_index > 0:
@@ -1499,10 +1561,8 @@ def main():
                 
                 # Restaurar la fase original de la palabra
                 if st.session_state.learning_mode or st.session_state.writing_mode:
-                    # En modo aprendizaje, mostrar la palabra completa
                     st.session_state.phase = 3
                 else:
-                    # En modo flashcard, ir a la fase 1
                     st.session_state.phase = 1
                 
                 st.session_state.phase_start_time = time.time()
@@ -1510,9 +1570,9 @@ def main():
                 
                 db.save_last_flashcard(word_data, st.session_state.phase)
                 st.rerun()
-    
-    with col4:
-        if st.button("⏭️ Siguiente", key="next_phase", use_container_width=True):
+
+    with col3:
+        if st.button("⭐ Siguiente", key="next_phase", use_container_width=True):
             st.session_state.dictation_revealed = False
             if st.session_state.current_word:
                 # Cancelar cualquier proceso automático en curso
@@ -1526,10 +1586,8 @@ def main():
                     # Usar la lógica de selección de palabras según el modo
                     if st.session_state.random_order:
                         word_data = db.get_random_word(st.session_state.current_category, 
-                                         review_only=st.session_state.review_filter_state, 
-                                         archived_only=st.session_state.archived_filter)
-                        
-
+                                        review_only=st.session_state.review_filter_state, 
+                                        archived_only=st.session_state.archived_filter)
                     else:
                         # Modo secuencial
                         if not st.session_state.current_category_words:
@@ -1543,7 +1601,6 @@ def main():
                             word_data = st.session_state.current_category_words[st.session_state.current_word_index]
                             st.session_state.current_word_index += 1
                         else:
-                            # Si llegamos al final, volvemos al principio
                             st.session_state.current_word_index = 0
                             if st.session_state.current_category_words:
                                 word_data = st.session_state.current_category_words[st.session_state.current_word_index]
@@ -1567,7 +1624,6 @@ def main():
                         
                 elif st.session_state.listening_mode:
                     # Lógica para modo escucha (existente)
-                    # ... (código existente para el modo escucha)
                     pass
                     
                 else:
@@ -1589,20 +1645,21 @@ def main():
                         # Usar la lógica de selección de palabras según el modo
                         if st.session_state.random_order:
                             word_data = db.get_random_word(st.session_state.current_category, 
-                                         review_only=st.session_state.review_filter_state, 
-                                         archived_only=st.session_state.archived_filter)
-
+                                        review_only=st.session_state.review_filter_state, 
+                                        archived_only=st.session_state.archived_filter)
                         else:
                             # Modo secuencial
                             if not st.session_state.current_category_words:
-                                st.session_state.current_category_words = db.get_words_by_category(st.session_state.current_category, review_filter, archived_filter)
+                                st.session_state.current_category_words = db.get_words_by_category(
+                                    st.session_state.current_category, 
+                                    st.session_state.review_filter_state, 
+                                    st.session_state.archived_filter)
                                 st.session_state.current_word_index = 0
                             
                             if st.session_state.current_word_index < len(st.session_state.current_category_words):
                                 word_data = st.session_state.current_category_words[st.session_state.current_word_index]
                                 st.session_state.current_word_index += 1
                             else:
-                                # Si llegamos al final, volvemos al principio
                                 st.session_state.current_word_index = 0
                                 if st.session_state.current_category_words:
                                     word_data = st.session_state.current_category_words[st.session_state.current_word_index]
@@ -1626,14 +1683,18 @@ def main():
                 
                 st.rerun()
 
-    with col5:
-        if st.button("🔄 Reiniciar", key="reset", use_container_width=True):
+    with col4:
+        if st.button("🔄 Reiniciar Sesión", key="reset", use_container_width=True):
             st.session_state.phase = 0
             st.session_state.is_playing = False
             st.session_state.current_word = None
             st.session_state.phase_start_time = None
             st.session_state.words_studied = 0
             st.session_state.dictation_revealed = False
+            st.session_state.random_order = False
+            st.session_state.auto_advance = False
+            st.session_state.current_word_index = 0
+            st.session_state.current_category_words = None
             st.rerun()
     
     # Área principal de flashcard
@@ -1641,7 +1702,7 @@ def main():
         st.markdown("""
         <div style="text-align: center; padding: 50px; background: #000000; border-radius: 10px; margin: 20px 0;">
             <h2>👋 ¡Bienvenido!</h2>
-            <p>Presiona <strong>"🎯 Nueva Palabra"</strong> para comenzar tu sesión de estudio</p>
+            <p>Presiona <strong>"🎯 Iniciar"</strong> para comenzar tu sesión de estudio</p>
         </div>
         """, unsafe_allow_html=True)
     else:
