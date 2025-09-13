@@ -1161,7 +1161,11 @@ def main():
                 auto_advance = False
             else:
                 auto_advance = st.checkbox("🔄 Avance automático", False)
-
+        random_order = st.checkbox(
+            "🔀 Orden aleatorio", 
+            value=False,
+            help="Mostrar palabras en orden aleatorio o secuencial"
+        )
         st.markdown("**📚 Filtro de Palabras:**")
         word_filter = st.radio(
             "Selecciona qué palabras mostrar:",
@@ -1283,6 +1287,7 @@ def main():
     st.session_state.repeat_count = repeat_count
     st.session_state.utterance_rate = utterance_rate
     st.session_state.auto_advance = auto_advance
+    st.session_state.random_order = random_order
     st.session_state.learning_mode = learning_mode
     st.session_state.writing_mode = writing_mode
     st.session_state.listening_mode = listening_mode
@@ -1326,15 +1331,7 @@ def main():
     st.markdown('<p style="text-align: center; font-size: 1.2em; color: #7f8c8d;">Flashcards para aprender vocabulario chino</p>', unsafe_allow_html=True)
     
     # Controles principales
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    
-    # Checkbox para orden aleatorio o secuencial
-    with col6:
-        st.session_state.random_order = st.checkbox(
-            "🔀 Orden aleatorio", 
-            value=st.session_state.random_order,
-            help="Mostrar palabras en orden aleatorio o secuencial"
-        )
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         if st.button("🎯 Nueva Palabra", key="new_word", use_container_width=True):
@@ -1580,57 +1577,6 @@ def main():
             st.session_state.dictation_revealed = False
             st.rerun()
 
-    with col6:
-        # Mover el checkbox de orden aleatorio aquí si hay espacio, o crear nueva fila
-        if st.session_state.current_word and st.session_state.current_data:
-            if st.session_state.archived_filter:
-                # En modo archivadas, mostrar botón de desarchivar
-                if st.button("📤 Desarchivar", key="unarchive_word", use_container_width=True):
-                    new_state = db.toggle_word_archived(
-                        st.session_state.current_data['chinese'],
-                        st.session_state.current_data['pinyin']
-                    )
-                    st.success("📤 Palabra desarchivada")
-                    st.session_state.current_category_words = []
-                    time.sleep(0.5)
-                    st.rerun()
-            else:
-                # En otros modos, mostrar botones de repaso y archivar
-                col6a, col6b = st.columns(2)
-                
-                with col6a:
-                    # Botón de repaso
-                    is_marked = db.get_word_review_status(
-                        st.session_state.current_data['chinese'], 
-                        st.session_state.current_data['pinyin']
-                    )
-                    button_text = "✅ Quitar Repaso" if is_marked else "🔄 Marcar Repaso"
-                    
-                    if st.button(button_text, key="toggle_review", use_container_width=True):
-                        new_state = db.toggle_word_review(
-                            st.session_state.current_data['chinese'],
-                            st.session_state.current_data['pinyin']
-                        )
-                        
-                        if new_state:
-                            st.success("✅ Palabra marcada para repasar")
-                        else:
-                            st.success("❌ Palabra quitada de repaso")
-                        
-                        time.sleep(0.5)
-                        st.rerun()
-                
-                with col6b:
-                    # Botón de archivar
-                    if st.button("📦 Archivar", key="archive_word", use_container_width=True):
-                        new_state = db.toggle_word_archived(
-                            st.session_state.current_data['chinese'],
-                            st.session_state.current_data['pinyin']
-                        )
-                        st.success("📦 Palabra archivada")
-                        time.sleep(0.5)
-                        st.rerun()
-    
     # Área principal de flashcard
     if st.session_state.current_word is None:
         st.markdown("""
@@ -2342,7 +2288,57 @@ def main():
                             db.save_last_flashcard(word_data, 1)
                     
                     st.rerun()
-
+    
+        # Mover el checkbox de orden aleatorio aquí si hay espacio, o crear nueva fila
+        if st.session_state.current_word and st.session_state.current_data:
+            if st.session_state.archived_filter:
+                # En modo archivadas, mostrar botón de desarchivar
+                if st.button("📤 Desarchivar", key="unarchive_word", use_container_width=True):
+                    new_state = db.toggle_word_archived(
+                        st.session_state.current_data['chinese'],
+                        st.session_state.current_data['pinyin']
+                    )
+                    st.success("📤 Palabra desarchivada")
+                    st.session_state.current_category_words = []
+                    time.sleep(0.5)
+                    st.rerun()
+            else:
+                # En otros modos, mostrar botones de repaso y archivar
+                col6a, col6b = st.columns(2)
+                
+                with col6a:
+                    # Botón de repaso
+                    is_marked = db.get_word_review_status(
+                        st.session_state.current_data['chinese'], 
+                        st.session_state.current_data['pinyin']
+                    )
+                    button_text = "✅ Quitar Repaso" if is_marked else "🔄 Marcar Repaso"
+                    
+                    if st.button(button_text, key="toggle_review", use_container_width=True):
+                        new_state = db.toggle_word_review(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+                        
+                        if new_state:
+                            st.success("✅ Palabra marcada para repasar")
+                        else:
+                            st.success("❌ Palabra quitada de repaso")
+                        
+                        time.sleep(0.5)
+                        st.rerun()
+                
+                with col6b:
+                    # Botón de archivar
+                    if st.button("📦 Archivar", key="archive_word", use_container_width=True):
+                        new_state = db.toggle_word_archived(
+                            st.session_state.current_data['chinese'],
+                            st.session_state.current_data['pinyin']
+                        )
+                        st.success("📦 Palabra archivada")
+                        time.sleep(0.5)
+                        st.rerun()
+    
 
 def handle_text_analysis_mode(db: VocabularyDB, selected_category: str):
     """Función para manejar el modo análisis de texto"""
